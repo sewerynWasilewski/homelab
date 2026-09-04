@@ -1,15 +1,15 @@
-TO DO: 
+# Homelab
 
-- VPN setup 
-- gitlab pipelines CI/CD
-- k8s monitoring stack
+Infrastructure-as-code for my homelab: Proxmox VMs, a kubeadm k8s cluster,
+Docker services, and a Prometheus/Mimir/Grafana monitoring stack.
 
-## Keys
+- `ansible/` — VM provisioning and k8s bootstrap
+- `docker/` — Traefik, Postgres, MinIO, and other VM-hosted services
+- `kubernetes/` — Helm charts (monitoring stack, website)
+- `terraform/` — Proxmox VMs and Cloudflare DNS
 
-SSH keys and other credentials are stored locally in the `keys/` directory. This directory is **not committed** to the repository — only the empty placeholder (`keys/.gitkeep`) is tracked. Place keys here for local use:
+## Keys & secrets
 
-```
-keys/
-  ansible_key       # SSH private key for Ansible
-  ansible_key.pub   # corresponding public key
-```
+- `keys/` — SSH keys, gitignored (only `.gitkeep` is tracked)
+- `secret-*.yaml` and `values.secrets.yaml` — real credentials, gitignored;
+  each has a committed `.example` sibling showing what to fill in
