@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "grafana-alloy.fullname" . }}
+  labels:
+    {{- include "grafana-alloy.labels" . | nindent 4 }}
+rules:
+  # Needed to reach the local kubelet's /metrics and /metrics/cadvisor -
+  # kubelet authorizes bearer tokens via a SubjectAccessReview against these
+  # exact resources, regardless of whether the request goes direct to the
+  # kubelet or through the apiserver's node proxy subresource.
+  - apiGroups: [""]
+    resources:
+      - nodes/proxy
+      - nodes/metrics
+    verbs: ["get"]

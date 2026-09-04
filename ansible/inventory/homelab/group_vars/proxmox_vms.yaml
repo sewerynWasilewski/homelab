@@ -1,0 +1,7 @@
+ansible_user: ansible
+ansible_ssh_common_args: >-
+  -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
+  -o ServerAliveInterval=30
+  -o ServerAliveCountMax=3
+  -o ProxyCommand="ssh -i /root/.ssh/ansible_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ansible@46.62.184.91"

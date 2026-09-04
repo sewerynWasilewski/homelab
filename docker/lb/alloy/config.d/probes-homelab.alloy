@@ -1,0 +1,77 @@
+prometheus.exporter.blackbox "homelab" {
+  config_file = "/etc/alloy/blackbox.yml"
+
+  target {
+    name    = "swasilewski.pl"
+    address = "https://swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "registry.swasilewski.pl"
+    address = "https://registry.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "registry-ui.swasilewski.pl"
+    address = "https://registry-ui.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "minio.swasilewski.pl"
+    address = "https://minio.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "s3.swasilewski.pl"
+    address = "https://s3.swasilewski.pl"
+    module  = "http_s3"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "photos.swasilewski.pl"
+    address = "https://photos.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "proxmox.swasilewski.pl"
+    address = "https://proxmox.swasilewski.pl"
+    module  = "http_2xx_insecure"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "scs-c03.swasilewski.pl"
+    address = "https://scs-c03.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+
+  // Internal-only, not exposed via Traefik
+  target {
+    name    = "postgres"
+    address = "10.10.10.10:5432"
+    module  = "tcp_connect"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "rabbitmq"
+    address = "10.10.10.10:5672"
+    module  = "tcp_connect"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "k8s-api"
+    address = "10.10.10.81:6443"
+    module  = "tcp_connect"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+}
+
+prometheus.scrape "homelab_probes" {
+  targets    = prometheus.exporter.blackbox.homelab.targets
+  forward_to = [prometheus.relabel.probe_labels.receiver]
+}

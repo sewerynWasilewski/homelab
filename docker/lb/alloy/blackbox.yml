@@ -1,0 +1,25 @@
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: "ip4"
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+  http_s3:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: "ip4"
+      valid_status_codes: [200, 403]
+  # Connectivity only - skips certificate trust verification. For targets
+  # with a known/accepted TLS issue where you still want a real up/down
+  # signal instead of every check failing on cert trust alone.
+  http_2xx_insecure:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: true

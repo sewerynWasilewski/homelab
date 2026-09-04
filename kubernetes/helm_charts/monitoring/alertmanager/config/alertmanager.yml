@@ -1,0 +1,24 @@
+route:
+  receiver: fanout
+  group_by: ['alertname', 'target']
+  # Per-endpoint downtime tolerance lives in the alert rule itself now
+  # (avg_over_time window + threshold, see probe-alerts.yml) - this is just
+  # how long to batch near-simultaneous alerts before the first notification,
+  # not a per-tier tolerance knob.
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: fanout
+    webhook_configs:
+      - url: {{ .Values.alerta.webhookUrl }}
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Key
+            credentials_file: /etc/alertmanager/secrets/alerta-api-key
+      {{- if ne .Values.goalert.webhookUrl "REPLACE_ME_GOALERT_INTEGRATION_URL" }}
+      - url: {{ .Values.goalert.webhookUrl }}
+        send_resolved: true
+      {{- end }}

@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: grafana/grafana
+  tag: "11.2.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 3000
+  nodePort: 30030
+
+admin:
+  user: admin
+  # Real value lives in values.secrets.yaml (gitignored, see the .example
+  # sibling) - deploy with: helm upgrade grafana ./grafana -n monitoring -f
+  # values.secrets.yaml
+  password: "REPLACE_ME_ADMIN_PASSWORD"
+
+rootUrl: https://grafana.swasilewski.pl/
+
+persistence:
+  size: 1Gi
+  storageClassName: local-path
+
+targets:
+  mimir: http://mimir-mimir.monitoring.svc.cluster.local:8080/prometheus
+  prometheus: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
+  alertmanager: http://alertmanager-alertmanager.monitoring.svc.cluster.local:9093
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

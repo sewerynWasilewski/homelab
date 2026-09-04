@@ -1,0 +1,4 @@
+k8s_storage_enabled: true
+k8s_storage_driver: local-path   # local-path | longhorn
+k8s_storage_namespace: local-path-storage
+k8s_storage_set_default: true

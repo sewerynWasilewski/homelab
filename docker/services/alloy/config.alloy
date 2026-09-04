@@ -1,0 +1,67 @@
+prometheus.exporter.unix "host" {
+  filesystem {
+    mount_points_exclude = "^/(boot(/efi)?|run/.*|var/lib/docker/.*)$"
+  }
+
+  disk {
+    device_exclude = "^(ram\\d+|loop\\d+|fd\\d+|(h|s|v|xv)d[a-z]\\d+|nvme\\d+n\\d+p\\d+|sr\\d+|dm-.*)$"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.labels.receiver]
+}
+
+prometheus.exporter.cadvisor "docker" {
+  docker_only         = true
+  containerd_namespace = "moby"
+}
+
+prometheus.scrape "cadvisor" {
+  targets    = prometheus.exporter.cadvisor.docker.targets
+  forward_to = [prometheus.relabel.labels.receiver]
+}
+
+prometheus.exporter.postgres "postgres" {
+  data_source_names = ["postgresql://monitoring_exporter:" + sys.env("POSTGRES_EXPORTER_PASSWORD") + "@10.10.10.10:5432/postgres?sslmode=disable"]
+}
+
+prometheus.scrape "postgres" {
+  targets    = prometheus.exporter.postgres.postgres.targets
+  forward_to = [prometheus.relabel.labels.receiver]
+}
+
+prometheus.relabel "labels" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    action       = "replace"
+    target_label = "host"
+    replacement  = "services"
+  }
+
+  rule {
+    action       = "replace"
+    target_label = "instance"
+    replacement  = sys.env("HOSTNAME")
+  }
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus.swasilewski.pl/api/v1/write"
+    basic_auth {
+      username = "homelab"
+      password = sys.env("PROMETHEUS_PASSWORD")
+    }
+  }
+
+  endpoint {
+    url = "https://mimir.swasilewski.pl/api/v1/push"
+    basic_auth {
+      username = "homelab"
+      password = sys.env("MIMIR_PASSWORD")
+    }
+  }
+}

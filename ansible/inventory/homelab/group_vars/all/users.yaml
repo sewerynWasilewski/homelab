@@ -1,0 +1,25 @@
+users:
+  swasilewski:
+    targets: 
+      - all
+    groups:
+      - sudo
+    ssh_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEkRAJ9HtOXUKYwYzOcunk4LNtOmwan06bkorZnmMpNM s.wasilewski@tenesys.pl"
+    add_keys_to_root: true
+    state: present
+
+######################################
+##           Deleted Users          ##
+######################################
+
+  testdelete:
+    targets: 
+      - all
+    groups:
+      - sudo
+    ssh_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEkRAJ9HtOXUKYwYzOcunk4LNtOmwan06bkorZnmMpNM s.wasilewski@tenesys.pl"
+    add_keys_to_root: true
+    state: absent
+    remove_home: true

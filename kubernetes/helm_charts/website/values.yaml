@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: registry.swasilewski.pl/wasilewski-website
+  tag: v0.2
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: registry-credentials
+
+service:
+  name: website-service
+  type: NodePort
+  port: 80
+  targetPort: 80
+  nodePort: 30080
+
+healthCheck:
+  path: /healthz
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  failureThreshold: 3

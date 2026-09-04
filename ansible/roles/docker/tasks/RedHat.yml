@@ -1,0 +1,24 @@
+- name: Load distribution-specific variables
+  ansible.builtin.include_vars: "{{ ansible_distribution }}.yml"
+
+- name: Remove conflicting packages
+  ansible.builtin.dnf:
+    name: "{{ docker_conflicting_packages }}"
+    state: absent
+
+- name: Install required packages
+  ansible.builtin.dnf:
+    name:
+      - dnf-plugins-core
+    state: present
+
+- name: Add Docker repository
+  ansible.builtin.command:
+    cmd: dnf config-manager --add-repo {{ docker_repo_url }}
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install Docker packages
+  ansible.builtin.dnf:
+    name: "{{ docker_packages }}"
+    state: present

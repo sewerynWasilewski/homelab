@@ -1,0 +1,42 @@
+groups:
+  - name: probe
+    rules:
+      # One rule per sla_tier - each combines its own tolerance window and
+      # uptime threshold in a single expression (matching the same pattern
+      # tenesys/kapacitor uses downstream of webmon: rolling avg_over_time
+      # window + threshold together, rather than a raw "has it been down
+      # for N seconds" check split across separate systems).
+      - alert: ProbeDownCritical
+        expr: avg_over_time(probe_success{sla_tier="critical"}[1m]) < 0.5
+        for: 0s
+        labels:
+          severity: critical
+          # Every blackbox target shares the same generic `instance` label
+          # (the prober's own identity, not the thing being probed) - Alerta
+          # derives its dedup key from `exported_instance` (falling back to
+          # `instance`), so without this every target collapses into one
+          # alert in Alerta.
+          exported_instance: "{{ $labels.target }}"
+        annotations:
+          summary: "{{ $labels.target }} is down"
+          description: "{{ $labels.target }} ({{ $labels.location }}) has been failing its reachability probe for the last minute."
+
+      - alert: ProbeDownStandard
+        expr: avg_over_time(probe_success{sla_tier="standard"}[5m]) < 0.5
+        for: 0s
+        labels:
+          severity: critical
+          exported_instance: "{{ $labels.target }}"
+        annotations:
+          summary: "{{ $labels.target }} is down"
+          description: "{{ $labels.target }} ({{ $labels.location }}) has been failing its reachability probe for the last 5 minutes."
+
+      - alert: TLSCertExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600
+        for: 1h
+        labels:
+          severity: warning
+          exported_instance: "{{ $labels.target }}"
+        annotations:
+          summary: "TLS cert for {{ $labels.target }} expires in under 14 days"
+          description: "Renew this certificate soon."

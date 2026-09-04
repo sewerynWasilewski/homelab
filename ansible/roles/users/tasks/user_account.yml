@@ -1,0 +1,40 @@
+---
+- name: Ensure present user exists
+  ansible.builtin.user:
+    name: "{{ user_item.key }}"
+    groups: "{{ user_item.value.groups | default([]) | join(',') if (user_item.value.groups | default([]) | length > 0) else omit }}"
+    shell: "{{ user_item.value.shell | default('/bin/bash') }}"
+    password: "{{ user_item.value.password | default(omit) }}"
+    update_password: on_create
+    home: "{{ user_item.value.home | default(omit) }}"
+    create_home: "{{ user_item.value.create_home | default(true) }}"
+    state: present
+  when:
+    - user_item.value.state | default('present') == 'present'
+
+- name: Install authorized keys for present user
+  ansible.posix.authorized_key:
+    user: "{{ user_item.key }}"
+    key: "{{ user_item.value.ssh_keys | join('\n') }}"
+    state: present
+    exclusive: true
+  when:
+    - user_item.value.state | default('present') == 'present'
+    - user_item.value.ssh_keys is defined
+
+- name: Disable selected user
+  ansible.builtin.user:
+    name: "{{ user_item.key }}"
+    password_lock: true
+    shell: /usr/sbin/nologin
+    state: present
+  when:
+    - user_item.value.state | default('present') == 'disabled'
+
+- name: Remove absent user
+  ansible.builtin.user:
+    name: "{{ user_item.key }}"
+    state: absent
+    remove: "{{ user_item.value.remove_home | default(false) }}"
+  when:
+    - user_item.value.state | default('present') == 'absent'

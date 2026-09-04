@@ -1,0 +1,30 @@
+http:
+  routers:
+    grafana-http:
+      rule: "Host(`grafana.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: grafana
+
+    grafana-https:
+      rule: "Host(`grafana.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: grafana
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30030"
+          - url: "http://10.10.10.83:30030"
+          - url: "http://10.10.10.84:30030"

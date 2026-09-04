@@ -1,0 +1,30 @@
+http:
+  routers:
+    goalert-http:
+      rule: "Host(`goalert.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: goalert
+
+    goalert-https:
+      rule: "Host(`goalert.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: goalert
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    goalert:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30161"
+          - url: "http://10.10.10.83:30161"
+          - url: "http://10.10.10.84:30161"

@@ -1,0 +1,32 @@
+services:
+  registry:
+    image: registry:2
+    container_name: container_registry
+    hostname: registry
+    restart: always
+    environment:
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=Registry
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+    ports:
+      - 5000:5000
+    volumes:
+      - ./data:/var/lib/registry
+      - ./auth:/auth
+
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: registry_ui
+    restart: always
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=Container Registry
+      - DELETE_IMAGES=true
+      - NGINX_PROXY_PASS_URL=http://registry:5000
+      - SHOW_CONTENT_DIGEST=true
+      - TAGLIST_PAGE_SIZE=100
+    ports: 
+      - 1080:80
+    depends_on:
+      - registry

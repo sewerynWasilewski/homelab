@@ -1,0 +1,44 @@
+http:
+  routers:
+    mimir-http:
+      rule: "Host(`mimir.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: mimir
+
+    mimir-https:
+      rule: "Host(`mimir.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - mimir-auth
+      service: mimir
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+    # Mimir has no login/auth of its own, and X-Scope-OrgID alone isn't a
+    # secret - anyone could claim any tenant name. So: one basicAuth user
+    # per tenant (username = tenant ID), and headerField makes Traefik
+    # overwrite X-Scope-OrgID with whichever username actually authenticated
+    # - the client can't just declare a tenant, only prove it via password.
+    # Revoking a tenant is just deleting their line here and reloading.
+    mimir-auth:
+      basicAuth:
+        users:
+          - "homelab:$2y$05$GJ6AsfwHd4NJcByFVtp0EuXbXxyxwcP1xnv26hRQmuumLBeOtilLe"
+        headerField: "X-Scope-OrgID"
+        removeHeader: true
+
+  services:
+    mimir:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30900"
+          - url: "http://10.10.10.83:30900"
+          - url: "http://10.10.10.84:30900"

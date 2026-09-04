@@ -1,0 +1,30 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+nodeRegistration:
+  criSocket: unix:///run/containerd/containerd.sock
+  kubeletExtraArgs:
+    cgroup-driver: systemd
+    node-ip: "{{ private_ip | default(ansible_host) }}"
+
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: "v{{ kubernetes_package_version.split('-')[0] }}"
+clusterName: "{{ kubernetes_cluster_name | default('kubernetes') }}"
+controlPlaneEndpoint: "{{ control_plane_endpoint }}"
+networking:
+  podSubnet: "{{ pod_network_cidr }}"
+  serviceSubnet: "{{ service_subnet }}"
+  dnsDomain: "{{ cluster_dns_domain }}"
+apiServer:
+  certSANs:
+{% for san in api_server_cert_sans %}
+    - "{{ san }}"
+{% endfor %}
+  extraArgs:
+    authorization-mode: Node,RBAC
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd

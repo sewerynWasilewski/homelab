@@ -1,0 +1,30 @@
+http:
+  routers:
+    portfolio-http:
+      rule: "Host(`swasilewski.pl`) || Host(`www.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: portfolio-service
+
+    portfolio-https:
+      rule: "Host(`swasilewski.pl`) || Host(`www.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: le
+      service: portfolio-service
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    portfolio-service:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30080"
+          - url: "http://10.10.10.83:30080"
+          - url: "http://10.10.10.84:30080"

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "prometheus.fullname" . }}-rules
+  labels:
+    {{- include "prometheus.labels" . | nindent 4 }}
+data:
+  # ** matches subdirectories too (e.g. alerts/aws/ec2-cpu.yml), so alerts can be
+  # organized by category. But ConfigMap keys can't contain "/", so AsConfig uses
+  # just the base filename as the key - files in different subdirectories that
+  # share a filename (e.g. alerts/aws/cpu.yml and alerts/gcp/cpu.yml) will collide
+  # and one will silently clobber the other. Keep filenames unique across the
+  # whole alerts/ tree, not just within one subdirectory.
+  {{- (.Files.Glob "alerts/**.yml").AsConfig | nindent 2 }}

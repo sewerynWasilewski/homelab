@@ -1,0 +1,39 @@
+http:
+  routers:
+    prometheus-http:
+      rule: "Host(`prometheus.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: prometheus
+
+    # Only the remote-write path is routed here (see the rule below) - the
+    # query API/UI stay unreachable from outside the LAN. Alloy on lb/services
+    # is the only client; nothing else needs this domain.
+    prometheus-https:
+      rule: "Host(`prometheus.swasilewski.pl`) && PathPrefix(`/api/v1/write`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - prometheus-auth
+      service: prometheus
+      tls:
+        certResolver: le
+
+  middlewares:
+    # Prometheus's remote-write receiver has no auth of its own - one shared
+    # credential is enough here (unlike Mimir, Prometheus isn't multi-tenant,
+    # so there's no per-tenant revocation to preserve).
+    prometheus-auth:
+      basicAuth:
+        users:
+          - "homelab:$2y$05$YF2MiBJjfvVeFhStS1xus.NkX/Cf1GkVIIcCVM37dRSWcM7v4KdvC"
+
+  services:
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30090"
+          - url: "http://10.10.10.83:30090"
+          - url: "http://10.10.10.84:30090"

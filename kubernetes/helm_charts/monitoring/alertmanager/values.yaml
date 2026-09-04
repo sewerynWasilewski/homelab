@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: prom/alertmanager
+  tag: v0.27.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 9093
+  nodePort: 30093
+
+storage:
+  size: 500Mi
+  storageClassName: local-path
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+alerta:
+  webhookUrl: http://alerta-alerta.monitoring.svc.cluster.local:8080/api/webhooks/prometheus
+  # See secret-alerta-key.yaml (applied separately, kept out of chart values).
+  existingSecret: alertmanager-alerta-key
+
+goalert:
+  # Real value lives in values.secrets.yaml (gitignored, see the .example
+  # sibling) - deploy with: helm upgrade alertmanager ./alertmanager -n
+  # monitoring -f values.secrets.yaml. Left as this sentinel, the config
+  # template's {{- if ne ... "REPLACE_ME_GOALERT_INTEGRATION_URL" }} check
+  # skips wiring GoAlert in at all.
+  webhookUrl: "REPLACE_ME_GOALERT_INTEGRATION_URL"

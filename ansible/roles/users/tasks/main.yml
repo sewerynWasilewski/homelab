@@ -1,0 +1,69 @@
+---
+- name: Validate that users variable is a dictionary
+  ansible.builtin.assert:
+    that:
+      - users is defined
+      - users is mapping
+    fail_msg: "'users' must be defined as a dictionary"
+    quiet: true
+
+- name: Validate each user definition
+  ansible.builtin.assert:
+    that:
+      - item.value is mapping
+      - item.value.targets is defined
+      - item.value.targets is sequence
+      - item.value.targets is not string
+      - item.value.state | default('present') in ['present', 'disabled', 'absent']
+      - item.value.groups is not defined or (item.value.groups is sequence and item.value.groups is not string)
+      - item.value.ssh_keys is not defined or (item.value.ssh_keys is sequence and item.value.ssh_keys is not string)
+      - item.value.add_keys_to_root is not defined or item.value.add_keys_to_root is boolean
+    fail_msg: "Invalid definition for user '{{ item.key }}'"
+    quiet: true
+  loop: "{{ users | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Validate target names for each user
+  ansible.builtin.assert:
+    that:
+      - invalid_targets | length == 0
+    fail_msg: "User '{{ item.key }}' contains invalid targets: {{ invalid_targets | join(', ') }}"
+    quiet: true
+  vars:
+    valid_group_targets: "{{ groups.keys() | list }}"
+    valid_host_targets: "{{ groups['all'] | default([]) }}"
+    valid_targets: "{{ (valid_group_targets + valid_host_targets + ['all']) | unique }}"
+    invalid_targets: "{{ (item.value.targets | default([])) | difference(valid_targets) }}"
+  loop: "{{ users | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Ensure required groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: >-
+    {{
+      users
+      | dict2items
+      | map(attribute='value.groups')
+      | select('defined')
+      | flatten
+      | unique
+      | list
+    }}
+
+- name: Manage user accounts
+  ansible.builtin.include_tasks: user_account.yml
+  loop: "{{ users | dict2items }}"
+  loop_control:
+    loop_var: user_item
+    label: "{{ user_item.key }}"
+  when: >
+    'all' in (user_item.value.targets | default([]))
+    or inventory_hostname in (user_item.value.targets | default([]))
+    or ((user_item.value.targets | default([])) | intersect(group_names) | length > 0)
+
+- name: Manage root authorized keys
+  ansible.builtin.include_tasks: root_account.yml

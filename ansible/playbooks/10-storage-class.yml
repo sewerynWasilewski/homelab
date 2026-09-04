@@ -1,0 +1,5 @@
+- name: Configure Kubernetes addons
+  hosts: k8s-cp-01
+  become: true
+  roles:
+    - role: k8s_storage

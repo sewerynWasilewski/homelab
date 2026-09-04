@@ -1,0 +1,85 @@
+# Grafana OnCall - deployed via the official upstream chart, see README.md
+# for why this directory has no hand-rolled templates like the others in
+# kubernetes/helm_charts/monitoring/.
+
+base_url: oncall.swasilewski.pl
+base_url_protocol: https
+
+# Exposed as a NodePort (bare-metal cluster, no cloud LoadBalancer) so the
+# existing Traefik VM can route oncall.swasilewski.pl to it, the same way
+# it already routes argocd.swasilewski.pl - see /root/traefik/dynamic/argocd.yml
+# on that host for the pattern to copy once this is confirmed healthy.
+service:
+  enabled: true
+  type: NodePort
+  nodePort: 30160
+
+# No k8s-native ingress - TLS and hostname routing happen entirely on the
+# external Traefik VM, not inside the cluster (same as ArgoCD/the portfolio site).
+ingress:
+  enabled: false
+ingress-nginx:
+  enabled: false
+cert-manager:
+  enabled: false
+
+# --- Database: external Postgres (already running on the services VM,
+# holds Terraform state too - see docker/services/postgresql/) ---
+database:
+  type: postgresql
+mariadb:
+  enabled: false
+postgresql:
+  enabled: false
+externalPostgresql:
+  host: "10.10.10.10"
+  port: 5432
+  db_name: "oncall"
+  user: "oncall_user"
+  existingSecret: "oncall-postgresql" # see secret-postgresql.yaml
+  passwordKey: "password"
+
+# --- Broker: external RabbitMQ (new container on the services VM,
+# see docker/services/rabbitmq/) ---
+rabbitmq:
+  enabled: false
+broker:
+  type: rabbitmq
+externalRabbitmq:
+  host: "10.10.10.10"
+  port: 5672
+  protocol: "amqp"
+  vhost: "/"
+  existingSecret: "oncall-rabbitmq" # see secret-rabbitmq.yaml
+  usernameKey: "username"
+  passwordKey: "password"
+
+# --- Cache/result backend: bundled in-cluster Redis. Low consequence if
+# lost (pure cache here, not the broker) - the one dependency left in k8s. ---
+redis:
+  enabled: true
+  image:
+    repository: bitnamilegacy/redis
+    tag: 6.2.9-debian-11-r0
+
+# --- Grafana: use the existing release from ../grafana/, not a second
+# bundled instance. The grafana-oncall-app plugin still needs to be
+# installed into that existing Grafana and paired with this engine
+# manually - the chart's automatic plugin provisioning only applies to
+# its own bundled Grafana subchart, not to an external one. Follow-up task. ---
+grafana:
+  enabled: false
+externalGrafana:
+  url: "http://grafana-grafana.monitoring.svc.cluster.local:3000"
+
+oncall:
+  # oncall.secrets.secretKey / mirageSecretKey deliberately left unset -
+  # the chart auto-generates them (randAlphaNum 40) if not provided.
+
+  # Deferred - no Slack App/OAuth credentials set up yet.
+  slack:
+    enabled: false
+  telegram:
+    enabled: false
+  smtp:
+    enabled: false

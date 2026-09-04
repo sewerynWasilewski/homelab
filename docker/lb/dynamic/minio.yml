@@ -1,0 +1,52 @@
+http:
+  routers:
+    # ===== HTTPS routers =====
+    minio-console:
+      rule: "Host(`minio.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: minio-console
+      tls:
+        certResolver: le
+
+    minio-s3:
+      rule: "Host(`s3.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: minio-s3
+      tls:
+        certResolver: le
+
+    # ===== HTTP -> HTTPS redirect =====
+    minio-console-http:
+      rule: "Host(`minio.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-https
+      service: noop@internal
+
+    minio-s3-http:
+      rule: "Host(`s3.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-https
+      service: noop@internal
+
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    minio-console:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.10:9001"
+
+    minio-s3:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.10:9000"

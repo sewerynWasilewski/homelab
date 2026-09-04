@@ -1,0 +1,13 @@
+kubernetes_repo_minor: "v1.33"
+kubernetes_package_version: "1.33.0-1.1"
+pod_network_cidr: "10.244.0.0/16"
+service_subnet: "10.96.0.0/12"
+cluster_dns_domain: "cluster.local"
+
+kubernetes_cluster_name: "homelab"
+
+control_plane_endpoint: "homelab.k8s.swasilewski.pl:6443"
+api_server_cert_sans:
+  - "homelab.k8s.swasilewski.pl"
+  - "k8s-cp-01"
+  - "10.10.10.81"

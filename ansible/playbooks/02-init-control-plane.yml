@@ -1,0 +1,8 @@
+- name: Initialize first control plane
+  hosts: control_plane
+  become: true
+  tasks:
+    - name: Run control plane init only on bootstrap node
+      ansible.builtin.include_role:
+        name: k8s_control_plane
+      when: k8s_control_plane_bootstrap | default(false) | bool

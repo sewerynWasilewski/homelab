@@ -1,0 +1,34 @@
+http:
+  routers:
+    proxmox-http:
+      rule: "Host(`proxmox.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: proxmox-service
+
+    proxmox-https:
+      rule: "Host(`proxmox.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: proxmox-service
+      tls: {}
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    proxmox-service:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: proxmoxTransport
+        servers:
+          - url: "https://10.10.10.1:8006"
+
+  serversTransports:
+    proxmoxTransport:
+      insecureSkipVerify: true

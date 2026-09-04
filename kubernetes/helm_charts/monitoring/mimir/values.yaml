@@ -1,0 +1,51 @@
+replicaCount: 1
+
+image:
+  repository: grafana/mimir
+  tag: "3.2.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30900
+
+storage:
+  size: 10Gi
+  storageClassName: local-path
+
+# How long the compactor keeps blocks in MinIO before deleting them. 0s
+# (Mimir's own default) means kept forever, which will eventually fill the
+# services VM's disk (already hit that once today, on a different VM).
+blocksRetentionPeriod: 720h # 30d
+
+# MinIO already runs on the services VM (docker/services/minio-server) -
+# reused here as Mimir's object storage rather than standing up a second one.
+minio:
+  endpoint: 10.10.10.10:9000
+  blocksBucket: mimir-blocks
+  existingSecret: mimir-minio-credentials
+
+# Hybrid setup (deliberate, POC): Prometheus keeps evaluating its own copy of
+# these same alert rules independently, so alerting survives a Mimir outage.
+# Mimir's Ruler evaluates the identical rule files (see rules/homelab/) and
+# notifies the same Alertmanager - since both produce the same alert labels,
+# Alertmanager dedupes them into one alert rather than firing twice.
+ruler:
+  alertmanagerUrl: http://alertmanager-alertmanager.monitoring.svc.cluster.local:9093
+
+# Single tenant for now - this is exactly the seam a second client would hook
+# into later (a new rules/<tenant>/ directory + a new X-Scope-OrgID on that
+# tenant's remote_write and Grafana datasource).
+tenant: homelab
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

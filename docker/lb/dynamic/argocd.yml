@@ -1,0 +1,30 @@
+http:
+  routers:
+    argocd-http:
+      rule: "Host(`argocd.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: argocd
+
+    argocd-https:
+      rule: "Host(`argocd.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: argocd
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    argocd:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30180"
+          - url: "http://10.10.10.83:30180"
+          - url: "http://10.10.10.84:30180"

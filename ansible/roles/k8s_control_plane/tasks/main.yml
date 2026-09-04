@@ -1,0 +1,166 @@
+- name: Check if control plane already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf
+
+- name: Render kubeadm config
+  ansible.builtin.template:
+    src: kubeadm-config.yml.j2
+    dest: /root/kubeadm-config.yml
+    mode: "0600"
+
+- name: Initialize Kubernetes control plane
+  ansible.builtin.command: kubeadm init --config /root/kubeadm-config.yml --upload-certs
+  register: kubeadm_init
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - not k8s_admin_conf.stat.exists
+
+- name: Re-check if control plane is initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf_after
+
+- name: Check if kubernetes-admin clusterrolebinding exists
+  ansible.builtin.command: >
+    kubectl --kubeconfig=/etc/kubernetes/super-admin.conf
+    get clusterrolebinding kubernetes-admin-cluster-admin
+  register: kubernetes_admin_binding_check
+  changed_when: false
+  failed_when: false
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Create kubernetes-admin clusterrolebinding
+  ansible.builtin.command: >
+    kubectl --kubeconfig=/etc/kubernetes/super-admin.conf
+    create clusterrolebinding kubernetes-admin-cluster-admin
+    --clusterrole=cluster-admin
+    --user=kubernetes-admin
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+    - kubernetes_admin_binding_check.rc != 0
+
+- name: Ensure root kubeconfig dir exists
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: "0700"
+
+- name: Copy admin.conf to root kubeconfig
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    mode: "0600"
+  when: k8s_admin_conf_after.stat.exists
+
+- name: Upload kubeadm config to ConfigMap
+  ansible.builtin.command: >
+    kubeadm init phase upload-config kubeadm
+    --config /root/kubeadm-config.yml
+    --kubeconfig /etc/kubernetes/super-admin.conf
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Upload kubelet config to ConfigMap
+  ansible.builtin.command: >
+    kubeadm init phase upload-config kubelet
+    --config /root/kubeadm-config.yml
+    --kubeconfig /etc/kubernetes/super-admin.conf
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Ensure kubeadm bootstrap-token phase is configured
+  ansible.builtin.command: >
+    kubeadm init phase bootstrap-token
+    --kubeconfig /etc/kubernetes/super-admin.conf
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Copy bootstrap token RBAC manifest
+  ansible.builtin.copy:
+    src: bootstrap-token-kubeadm-config-rbac.yaml
+    dest: /root/bootstrap-token-kubeadm-config-rbac.yaml
+    mode: "0600"
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Apply bootstrap token RBAC manifest
+  ansible.builtin.command: >
+    kubectl --kubeconfig=/etc/kubernetes/super-admin.conf
+    apply -f /root/bootstrap-token-kubeadm-config-rbac.yaml
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Generate worker join command
+  ansible.builtin.command: >
+    kubeadm token create
+    --kubeconfig /etc/kubernetes/super-admin.conf
+    --ttl 24h
+    --print-join-command
+  register: kubeadm_worker_join_cmd
+  changed_when: false
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Save worker join command
+  ansible.builtin.set_fact:
+    worker_join_command: "{{ kubeadm_worker_join_cmd.stdout }}"
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Upload control-plane certificates and get certificate key
+  ansible.builtin.command: >
+    kubeadm init phase upload-certs
+    --upload-certs
+    --config /root/kubeadm-config.yml
+  register: kubeadm_upload_certs
+  changed_when: false
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Extract certificate key
+  ansible.builtin.set_fact:
+    control_plane_certificate_key: "{{ kubeadm_upload_certs.stdout_lines[-1] }}"
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Generate control-plane join command
+  ansible.builtin.command: >
+    kubeadm token create
+    --kubeconfig /etc/kubernetes/super-admin.conf
+    --ttl 2h
+    --print-join-command
+  register: kubeadm_cp_join_cmd
+  changed_when: false
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Save control-plane join command
+  ansible.builtin.set_fact:
+    control_plane_join_command: "{{ kubeadm_cp_join_cmd.stdout }} --control-plane --certificate-key {{ control_plane_certificate_key }}"
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists
+
+- name: Fetch admin.conf to local machine
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: /workspace/artifacts/kubeconfig/admin.conf
+    flat: true
+  when:
+    - k8s_control_plane_bootstrap | default(false) | bool
+    - k8s_admin_conf_after.stat.exists

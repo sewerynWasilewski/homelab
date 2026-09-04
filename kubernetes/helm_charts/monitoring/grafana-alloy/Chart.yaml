@@ -1,0 +1,6 @@
+apiVersion: v2
+name: grafana-alloy
+description: Per-node collection agent - host metrics (unix exporter) and container metrics (kubelet/cadvisor), remote-written to Prometheus
+type: application
+version: 0.1.0
+appVersion: "1.19.2"

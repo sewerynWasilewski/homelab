@@ -1,0 +1,28 @@
+http:
+  routers:
+    scs-c03-http:
+      rule: "Host(`scs-c03.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: scs-c03
+
+    scs-c03-https:
+      rule: "Host(`scs-c03.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: scs-c03
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    scs-c03:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.10:8082"

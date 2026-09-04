@@ -1,0 +1,39 @@
+http:
+  routers:
+    alertmanager-http:
+      rule: "Host(`alertmanager.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: alertmanager
+
+    alertmanager-https:
+      rule: "Host(`alertmanager.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - alertmanager-auth
+      service: alertmanager
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+    # Alertmanager has no built-in login of its own - gate it with basic
+    # auth. This is a bcrypt hash, not reversible; the plaintext password
+    # was given to you separately when this was generated.
+    alertmanager-auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$9ZK.RAzpHjv8kvx0AUFHoOzbhKCmjjx74k3e25s.ShxmjSCe9rk52"
+
+  services:
+    alertmanager:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30093"
+          - url: "http://10.10.10.83:30093"
+          - url: "http://10.10.10.84:30093"

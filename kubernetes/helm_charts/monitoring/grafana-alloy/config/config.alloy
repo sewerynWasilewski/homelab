@@ -1,0 +1,85 @@
+prometheus.exporter.unix "host" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host"
+
+  filesystem {
+    mount_points_exclude = "^/(boot(/efi)?|run/.*|var/lib/kubelet/.*|var/lib/docker/.*)$"
+  }
+
+  disk {
+    device_exclude = "^(ram\\d+|loop\\d+|fd\\d+|(h|s|v|xv)d[a-z]\\d+|nvme\\d+n\\d+p\\d+|sr\\d+|dm-.*)$"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.node.receiver]
+}
+
+prometheus.scrape "kubelet" {
+  targets = [
+    {"__address__" = sys.env("NODE_IP") + ":10250", "__metrics_path__" = "/metrics"},
+  ]
+  scheme            = "https"
+  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+  tls_config {
+    insecure_skip_verify = true
+  }
+
+  forward_to = [prometheus.relabel.node.receiver]
+}
+
+prometheus.scrape "cadvisor" {
+  targets = [
+    {"__address__" = sys.env("NODE_IP") + ":10250", "__metrics_path__" = "/metrics/cadvisor"},
+  ]
+  scheme            = "https"
+  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+  tls_config {
+    insecure_skip_verify = true
+  }
+
+  forward_to = [prometheus.relabel.node.receiver]
+}
+
+prometheus.relabel "node" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    action       = "replace"
+    target_label = "instance"
+    replacement  = sys.env("NODE_NAME")
+  }
+
+  rule {
+    action       = "replace"
+    target_label = "host"
+    replacement  = sys.env("NODE_NAME")
+  }
+
+  rule {
+    action       = "replace"
+    target_label = "k8s_cluster"
+    replacement  = "{{ .Values.clusterLabel }}"
+  }
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "{{ .Values.remoteWriteUrl }}"
+  }
+
+  // No X-Scope-OrgID header set here on purpose - Traefik derives the
+  // tenant from whichever basicAuth user authenticates and overwrites that
+  // header itself, so a client can't just self-declare a tenant.
+  endpoint {
+    url = "{{ .Values.mimirRemoteWriteUrl }}"
+    basic_auth {
+      username = "{{ .Values.mimirTenant }}"
+      password = sys.env("MIMIR_PASSWORD")
+    }
+  }
+}

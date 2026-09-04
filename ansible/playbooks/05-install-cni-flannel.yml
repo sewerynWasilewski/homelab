@@ -1,0 +1,8 @@
+- name: Install CNI
+  hosts: control_plane
+  become: true
+  tasks:
+    - name: Install CNI only on bootstrap control plane
+      ansible.builtin.include_role:
+        name: k8s_cni
+      when: k8s_control_plane_bootstrap | default(false) | bool

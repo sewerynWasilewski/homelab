@@ -1,0 +1,6 @@
+apiVersion: v2
+name: prometheus
+description: Prometheus server - scrapes, stores, and evaluates alerting rules over cluster metrics
+type: application
+version: 0.1.0
+appVersion: "v2.55.1"

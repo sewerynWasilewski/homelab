@@ -1,0 +1,7 @@
+- name: Fail if OS family is unsupported
+  ansible.builtin.fail:
+    msg: "Unsupported OS family: {{ ansible_os_family }}"
+  when: ansible_os_family not in ['Debian', 'RedHat']
+
+- name: Include OS-family specific tasks
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"

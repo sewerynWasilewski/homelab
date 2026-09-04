@@ -1,0 +1,28 @@
+http:
+  routers:
+    registry:
+      rule: "Host(`registry.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: registry
+      tls:
+        certResolver: le
+
+    registry-ui:
+      rule: "Host(`registry-ui.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: registry-ui
+      tls:
+        certResolver: le
+
+  services:
+    registry:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.10:5000"
+
+    registry-ui:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.10:1080"

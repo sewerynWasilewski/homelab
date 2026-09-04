@@ -1,0 +1,18 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      # AMQP - what Grafana OnCall's Celery workers actually connect to.
+      - "10.10.10.10:5672:5672"
+      # Management UI - useful for inspecting queues while debugging.
+      - "10.10.10.10:15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:

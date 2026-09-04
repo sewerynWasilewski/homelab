@@ -1,0 +1,43 @@
+replicaCount: 1
+
+image:
+  repository: prom/prometheus
+  tag: v2.55.1
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 9090
+  nodePort: 30090
+
+prometheus:
+  retention: 7d
+  # Hard cap below the PVC size (storage.size) so Prometheus starts evicting
+  # old blocks before the disk actually fills, regardless of retention.time.
+  retentionSize: 9GB
+  scrapeInterval: 15s
+  evaluationInterval: 15s
+
+storage:
+  size: 10Gi
+  storageClassName: local-path
+
+# DNS names of the other charts' Services, wired together here instead of
+# hardcoded in the ConfigMap template so this stays a single place to change
+# if a release is ever renamed.
+targets:
+  kubeStateMetrics: kube-state-metrics-kube-state-metrics.monitoring.svc.cluster.local:8080
+  alertmanager: alertmanager-alertmanager.monitoring.svc.cluster.local:9093
+
+clusterLabel: homelab
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

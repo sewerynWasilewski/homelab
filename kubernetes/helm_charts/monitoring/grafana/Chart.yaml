@@ -1,0 +1,6 @@
+apiVersion: v2
+name: grafana
+description: Dashboards and alert visualization on top of Prometheus and Alertmanager
+type: application
+version: 0.1.0
+appVersion: "11.2.0"

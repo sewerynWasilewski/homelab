@@ -1,0 +1,11 @@
+- name: Install local-path provisioner
+  ansible.builtin.include_tasks: local_path.yml
+  when:
+    - k8s_storage_enabled
+    - k8s_storage_driver == "local-path"
+
+- name: Install Longhorn
+  ansible.builtin.include_tasks: longhorn.yml
+  when:
+    - k8s_storage_enabled
+    - k8s_storage_driver == "longhorn"

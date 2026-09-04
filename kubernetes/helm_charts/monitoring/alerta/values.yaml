@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  # alerta-api alone is API-only, no web console. alerta-web bundles the API
+  # + the alerta-webui static console + nginx (via supervisord) on one port.
+  repository: alerta/alerta-web
+  tag: "9.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30097
+
+# Full postgres://user:password@host:port/dbname connection string, kept in a
+# Secret rather than here - see secret-database.yaml (placeholder, fill in
+# the real value locally, never commit it).
+database:
+  existingSecret: alerta-database
+  secretKey: DATABASE_URL
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+authRequired: true
+adminUsers:
+  - seweryn.wasilewski@gmail.com

@@ -1,0 +1,45 @@
+all:
+  children:
+    bare_metals:
+      children: 
+        proxmox:
+          hosts: 
+            proxmox01:
+              ansible_host: 46.62.184.91
+              users_skip_apt_cache: true
+
+    proxmox_vms:
+      children: 
+        proxmox01_vms: 
+          hosts:
+            proxy: 
+              ansible_host: 10.10.10.2
+            website: 
+              ansible_host: 10.10.10.10
+            immich: 
+              ansible_host: 10.10.10.11
+            k8s-cp-01:
+              ansible_host: 10.10.10.81
+              k8s_control_plane_bootstrap: true
+              private_ip: 10.10.10.81
+            k8s-worker-01:
+              ansible_host: 10.10.10.82
+            k8s-worker-02:
+              ansible_host: 10.10.10.83 
+            k8s-worker-03:
+              ansible_host: 10.10.10.84
+        
+    k8s:
+      children:
+        control_plane: 
+          vars:
+            k8s_role: control-plane
+          hosts: 
+            k8s-cp-01:
+        workers:
+          vars:
+            k8s_role: worker
+          hosts:
+            k8s-worker-01:
+            k8s-worker-02:
+            k8s-worker-03:

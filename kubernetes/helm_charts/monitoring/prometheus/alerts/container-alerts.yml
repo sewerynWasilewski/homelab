@@ -1,0 +1,23 @@
+# Sourced from cadvisor via grafana-alloy's kubelet scrape.
+groups:
+  - name: container
+    rules:
+      - alert: ContainerMemoryNearLimit
+        expr: >
+          (container_memory_working_set_bytes{container!=""} / container_spec_memory_limit_bytes{container!=""}) > 0.9
+          unless container_spec_memory_limit_bytes{container!=""} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} near its memory limit"
+          description: "Working set memory has been above 90% of the configured limit for more than 10 minutes - at risk of OOMKill."
+
+      - alert: ContainerCPUThrottlingHigh
+        expr: rate(container_cpu_cfs_throttled_periods_total{container!=""}[5m]) / rate(container_cpu_cfs_periods_total{container!=""}[5m]) > 0.25
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled"
+          description: "More than 25% of CPU periods have been throttled for more than 15 minutes - consider raising its CPU limit."

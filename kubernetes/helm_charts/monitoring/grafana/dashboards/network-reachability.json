@@ -1,0 +1,153 @@
+{
+  "title": "Network Reachability",
+  "uid": "network-reachability",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "location",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(probe_success, location)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "HTTP",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "status-history",
+      "title": "Response Code ($location)",
+      "repeat": "location",
+      "repeatDirection": "h",
+      "maxPerRow": 3,
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "No response" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "semi-dark-red", "value": null },
+              { "color": "semi-dark-green", "value": 200 },
+              { "color": "semi-dark-blue", "value": 300 },
+              { "color": "semi-dark-yellow", "value": 400 },
+              { "color": "red", "value": 500 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Response time ($location)",
+      "repeat": "location",
+      "repeatDirection": "h",
+      "maxPerRow": 3,
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "probe_duration_seconds{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true, "calcs": ["lastNotNull", "mean", "min"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": {
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "lineWidth": 1,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "title": "TLS",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "TLS Certificates",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "probe_ssl_earliest_cert_expiry", "format": "table", "instant": true, "refId": "A" }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "binary": { "left": "Value", "operator": "*", "right": "1000" },
+            "alias": "Expires At",
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "cluster": true, "host": true, "instance": true, "job": true, "Value": true },
+            "renameByName": { "target": "Target", "location": "Location" }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Expires At" },
+            "properties": [
+              { "id": "unit", "value": "dateTimeAsIso" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Target" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  { "targetBlank": true, "title": "Open https://${__value.raw}", "url": "https://${__value.raw}" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

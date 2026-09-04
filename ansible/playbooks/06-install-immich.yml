@@ -1,0 +1,104 @@
+- name: Install and run Immich
+  hosts: immich
+  become: true
+
+  vars:
+    immich_dir: /opt/immich
+    immich_upload_location: /opt/immich/library
+    immich_db_data_location: /opt/immich/postgres
+    immich_version: release
+
+    immich_db_username: postgres
+    immich_db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+    immich_db_name: immich
+
+  tasks:
+    - name: Verify Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Verify Docker Compose plugin is installed
+      ansible.builtin.command: docker compose version
+      register: docker_compose_version
+      changed_when: false
+      
+    - name: Ensure DB_PASSWORD is set
+      ansible.builtin.fail:
+        msg: "DB_PASSWORD environment variable is not set"
+      when: lookup('env', 'DB_PASSWORD') == ""
+
+    - name: Ensure Immich base directory exists
+      ansible.builtin.file:
+        path: "{{ immich_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure Immich upload directory exists
+      ansible.builtin.file:
+        path: "{{ immich_upload_location }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure Immich database directory exists
+      ansible.builtin.file:
+        path: "{{ immich_db_data_location }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download Immich docker-compose.yml
+      ansible.builtin.get_url:
+        url: https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+        dest: "{{ immich_dir }}/docker-compose.yml"
+        mode: "0644"
+
+    - name: Download Immich example.env
+      ansible.builtin.get_url:
+        url: https://github.com/immich-app/immich/releases/latest/download/example.env
+        dest: "{{ immich_dir }}/.env"
+        mode: "0644"
+        force: false
+
+    - name: Configure Immich environment variables
+      ansible.builtin.lineinfile:
+        path: "{{ immich_dir }}/.env"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - key: UPLOAD_LOCATION
+          value: "{{ immich_upload_location }}"
+        - key: DB_DATA_LOCATION
+          value: "{{ immich_db_data_location }}"
+        - key: IMMICH_VERSION
+          value: "{{ immich_version }}"
+        - key: DB_USERNAME
+          value: "{{ immich_db_username }}"
+        - key: DB_PASSWORD
+          value: "{{ immich_db_password }}"
+        - key: DB_DATABASE_NAME
+          value: "{{ immich_db_name }}"
+
+    - name: Start Immich
+      ansible.builtin.command:
+        cmd: docker compose -f {{ immich_dir }}/docker-compose.yml up -d
+        chdir: "{{ immich_dir }}"
+      register: immich_up
+      changed_when: >
+        'Creating' in immich_up.stdout or
+        'Recreating' in immich_up.stdout or
+        'Starting' in immich_up.stdout
+
+    - name: Show Immich startup output
+      ansible.builtin.debug:
+        var: immich_up.stdout_lines
+
+    - name: Check Immich containers
+      ansible.builtin.command:
+        cmd: docker compose -f {{ immich_dir }}/docker-compose.yml ps
+        chdir: "{{ immich_dir }}"
+      register: immich_ps
+      changed_when: false
+
+    - name: Show Immich container status
+      ansible.builtin.debug:
+        var: immich_ps.stdout_lines

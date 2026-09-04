@@ -1,0 +1,15 @@
+tcp:
+  routers:
+    k8s-api:
+      rule: "HostSNI(`homelab.k8s.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: k8s-api
+      tls:
+        passthrough: true
+
+  services:
+    k8s-api:
+      loadBalancer:
+        servers:
+          - address: "10.10.10.81:6443"

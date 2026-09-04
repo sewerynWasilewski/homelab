@@ -1,0 +1,33 @@
+#cloud-config
+hostname: ${hostname}
+timezone: Europe/Warsaw
+users:
+  - name: ${default_user_name}
+    gecos: Ubuntu User
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    passwd: ${default_user_password_hash}
+    ssh_authorized_keys:
+      - ${default_user_public_key}
+  - name: ansible
+    gecos: Ansible User
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    passwd: ${ansible_password_hash}
+    ssh_authorized_keys:
+      - ${ansible_ssh_public_key}
+
+package_update: true
+packages:
+  - qemu-guest-agent
+  - net-tools
+  - ca-certificates
+  - curl
+runcmd:
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  - echo "done" > /tmp/cloud-config.done

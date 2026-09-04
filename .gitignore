@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# env
+.env
+
+# keys / credentials (store locally in keys/, never commit)
+keys/*
+!keys/.gitkeep
+
+# terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+
+artifacts/
+
+# skipped for now, not ready to publish
+docs/
+archive/
+
+# docker-compose runtime data and credential files - never commit these,
+# only the docker-compose.yml/config that describes them
+docker/services/*/data/
+docker/services/*/auth/
+
+# Standalone Kubernetes Secret manifests (chart-root, not under templates/ -
+# applied once via `kubectl apply -f`, not part of `helm upgrade`) hold real
+# credentials directly. Keep the *.example sibling committed as the
+# fill-in-the-blanks reference; never commit the real file.
+secret-*.yaml
+!secret-*.yaml.example
+
+# A handful of charts' values.yaml hold one or two credential fields
+# directly (Grafana admin password, GoAlert webhook token). The checked-in
+# values.yaml keeps a placeholder; the real value goes here and must be
+# passed explicitly at deploy time: helm upgrade ... -f values.secrets.yaml
+values.secrets.yaml
+!values.secrets.yaml.example

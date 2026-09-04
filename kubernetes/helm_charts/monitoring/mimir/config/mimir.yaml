@@ -1,0 +1,66 @@
+target: all
+
+multitenancy_enabled: true
+
+server:
+  http_listen_port: 8080
+  grpc_listen_port: 9095
+  log_level: info
+
+common:
+  storage:
+    backend: s3
+    s3:
+      endpoint: {{ .Values.minio.endpoint }}
+      access_key_id: ${MINIO_ACCESS_KEY_ID}
+      secret_access_key: ${MINIO_SECRET_ACCESS_KEY}
+      insecure: true
+
+blocks_storage:
+  s3:
+    bucket_name: {{ .Values.minio.blocksBucket }}
+  tsdb:
+    dir: /data/tsdb
+
+# Single replica for this homelab POC - the ring's default replication
+# factor of 3 can't be satisfied by one instance, so it needs lowering
+# everywhere the ring is used.
+ingester:
+  ring:
+    replication_factor: 1
+
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+
+alertmanager:
+  sharding_ring:
+    replication_factor: 1
+
+# Rule files mounted straight from this chart's rules/<tenant>/ directory -
+# same YAML Prometheus loads, so Mimir's Ruler produces identical alert
+# labels and Alertmanager dedupes rather than double-firing.
+ruler_storage:
+  backend: local
+  local:
+    directory: /etc/mimir/rules
+
+# Not using Mimir's own built-in Alertmanager - ruler notifies the existing
+# Alertmanager directly instead. Still needs some storage backend configured
+# even though nothing is stored there in this setup.
+alertmanager_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/alertmanager
+
+ruler:
+  alertmanager_url: {{ .Values.ruler.alertmanagerUrl }}
+
+compactor:
+  data_dir: /data/compactor
+
+# Defaults to 0s (kept forever) if unset - MinIO has no lifecycle policy of
+# its own either, so without this nothing would ever get cleaned up. This is
+# a per-tenant limit, not a compactor-level setting, despite the name.
+limits:
+  compactor_blocks_retention_period: {{ .Values.blocksRetentionPeriod }}

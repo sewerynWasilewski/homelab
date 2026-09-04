@@ -1,0 +1,30 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --log.level=INFO
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.file.directory=/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.email=${EMAIL}
+      - --certificatesresolvers.le.acme.storage=/etc/traefik/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --metrics.prometheus=true
+      - --entryPoints.metrics.address=:8082
+      - --metrics.prometheus.entryPoint=metrics
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      # Loopback only - Alloy runs natively on this same VM, nothing else
+      # needs to reach this.
+      - "127.0.0.1:8082:8082"
+    volumes:
+      - ./dynamic:/dynamic:ro
+      - ./acme.json:/etc/traefik/acme.json

@@ -1,0 +1,28 @@
+http:
+  routers:
+    immich-http:
+      rule: "Host(`photos.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: immich
+
+    immich:
+      rule: "Host(`photos.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: immich
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    immich:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.11:2283"

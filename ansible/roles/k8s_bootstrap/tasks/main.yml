@@ -1,0 +1,8 @@
+- name: Include Kubernetes node prerequisites
+  ansible.builtin.include_tasks: prereqs.yml
+
+- name: Include container runtime setup
+  ansible.builtin.include_tasks: runtime.yml
+
+- name: Include Kubernetes packages setup
+  ansible.builtin.include_tasks: packages.yml
