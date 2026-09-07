@@ -1,0 +1,84 @@
+// Native (non-container) install on the Proxmox host itself - not a k8s
+// node, not a Docker host, so no cadvisor/kubelet scraping here, just the
+// host's own OS metrics plus Proxmox's own virtualization metrics (VM/CT
+// status, per-guest CPU/mem/disk/net, storage pools) via prometheus-pve-
+// exporter, since Alloy has no built-in Proxmox collector.
+prometheus.exporter.unix "host" {
+  // /boot and /boot/efi are real but static/uninteresting.
+  filesystem {
+    mount_points_exclude = "^/(boot(/efi)?|run/.*)$"
+  }
+
+  // Keep the real array (md3, this host's mdadm RAID) only - sr0 is the
+  // virtual CD-ROM, loop/ram/fd/partitions are node_exporter's own usual
+  // noise.
+  disk {
+    device_exclude = "^(ram\\d+|loop\\d+|fd\\d+|(h|s|v|xv)d[a-z]\\d+|nvme\\d+n\\d+p\\d+|sr\\d+|dm-.*)$"
+  }
+}
+
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.labels.receiver]
+}
+
+// pve_exporter (systemd service, 127.0.0.1:9221) authenticates to the PVE
+// API itself using a read-only (PVEAuditor) API token - see
+// /etc/prometheus/pve.yml on the host. cluster=1/node=1 pulls in the
+// cluster-wide VM/CT/storage metrics, not just this one node's own stats.
+prometheus.scrape "pve" {
+  targets = [
+    {"__address__" = "127.0.0.1:9221"},
+  ]
+  metrics_path = "/pve"
+  params      = { "target" = ["127.0.0.1"], "cluster" = ["1"], "node" = ["1"] }
+  // The exporter's own PVE API calls can take a few seconds under load.
+  scrape_interval = "30s"
+  scrape_timeout  = "20s"
+  forward_to      = [prometheus.relabel.labels.receiver]
+}
+
+prometheus.relabel "labels" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    action       = "replace"
+    target_label = "host"
+    replacement  = "proxmox01"
+  }
+
+  // This node isn't in a formal PVE cluster today (no corosync.conf) - same
+  // reasoning as k8s_cluster: a distinct label rather than overloading
+  // "host", so a second Proxmox cluster later doesn't require redesigning
+  // this, and dashboards can filter "which Proxmox cluster" independently
+  // of "which node in it".
+  rule {
+    action       = "replace"
+    target_label = "proxmox_cluster"
+    replacement  = "homelab"
+  }
+
+  rule {
+    action       = "replace"
+    target_label = "instance"
+    replacement  = sys.env("HOSTNAME")
+  }
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus.swasilewski.pl/api/v1/write"
+    basic_auth {
+      username = "homelab"
+      password = sys.env("PROMETHEUS_PASSWORD")
+    }
+  }
+
+  endpoint {
+    url = "https://mimir.swasilewski.pl/api/v1/push"
+    basic_auth {
+      username = "homelab"
+      password = sys.env("MIMIR_PASSWORD")
+    }
+  }
+}

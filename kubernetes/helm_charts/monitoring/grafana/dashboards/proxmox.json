@@ -1,0 +1,323 @@
+{
+  "title": "Proxmox",
+  "uid": "proxmox",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "proxmox_cluster",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(pve_up, proxmox_cluster)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(pve_up{proxmox_cluster=~\"$proxmox_cluster\"}, instance)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "guest",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(pve_guest_info, name)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Node Up",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"node/.+\"}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Up", "color": "green" } } }
+          ]
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "VMs Running",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} == 1) OR on() vector(0)", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "VMs Stopped",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} == 0) OR on() vector(0)", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Guests Not Backed Up",
+      "description": "Guests with no backup job covering them at all - not \"backup overdue\", genuinely unprotected.",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(pve_not_backed_up_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"}) OR on() vector(0)", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Guests",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Guest Status",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name, type) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "id": true, "job": true, "host": true, "instance": true, "template": true, "tags": true, "proxmox_cluster": true },
+            "renameByName": { "name": "Name", "type": "Type", "Value": "Status" }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "0": { "text": "Stopped", "color": "orange" }, "1": { "text": "Running", "color": "green" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Guest CPU Usage",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "pve_cpu_usage_ratio{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"} * 100",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Guest Memory Usage",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "pve_memory_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "decbytes", "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Guest Network I/O",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(pve_network_receive_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"})",
+          "legendFormat": "{{name}} rx",
+          "refId": "A"
+        },
+        {
+          "expr": "-(sum by (name) (rate(pve_network_transmit_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}))",
+          "legendFormat": "{{name}} tx",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "fillOpacity": 20, "gradientMode": "opacity", "lineWidth": 1 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "/.*rx.*/" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byRegexp", "options": "/.*tx.*/" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Guest Disk I/O",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(pve_disk_read_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"})",
+          "legendFormat": "{{name}} read",
+          "refId": "A"
+        },
+        {
+          "expr": "-(sum by (name) (rate(pve_disk_written_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}))",
+          "legendFormat": "{{name}} write",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "fillOpacity": 20, "gradientMode": "opacity", "lineWidth": 1 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "/.*read.*/" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byRegexp", "options": "/.*write.*/" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Storage",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
+      "panels": []
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Storage Pool Usage %",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "(pve_disk_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"} / pve_disk_size_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"}) * 100",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Storage Pool Usage (GB)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "pve_disk_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"}",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "decbytes", "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Backup",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 38 },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Guests Not Backed Up",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 39 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "pve_not_backed_up_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"} * on(id) group_left(name, type) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "id": true, "job": true, "host": true, "instance": true, "template": true, "tags": true, "proxmox_cluster": true, "Value": true },
+            "renameByName": { "name": "Name", "type": "Type" }
+          }
+        }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "align": "auto" } }, "overrides": [] }
+    }
+  ]
+}
