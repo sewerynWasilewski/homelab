@@ -45,6 +45,40 @@ prometheus.scrape "cadvisor" {
   forward_to = [prometheus.relabel.node.receiver]
 }
 
+// Cluster-wide target: with clustering enabled the Alloy peers split the
+// targets between them, so kube-state-metrics is scraped by exactly one pod
+// (and taken over by another if that pod goes away) - no duplicate series.
+// job/cluster/k8s_cluster labels match what Prometheus used to set.
+prometheus.scrape "kube_state_metrics" {
+  targets = [
+    {"__address__" = "{{ .Values.kubeStateMetricsAddress }}"},
+  ]
+  job_name        = "kube-state-metrics"
+  scrape_interval = "15s"
+
+  clustering {
+    enabled = true
+  }
+
+  forward_to = [prometheus.relabel.cluster.receiver]
+}
+
+prometheus.relabel "cluster" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    action       = "replace"
+    target_label = "cluster"
+    replacement  = "{{ .Values.clusterLabel }}"
+  }
+
+  rule {
+    action       = "replace"
+    target_label = "k8s_cluster"
+    replacement  = "{{ .Values.clusterLabel }}"
+  }
+}
+
 prometheus.relabel "node" {
   forward_to = [prometheus.remote_write.default.receiver]
 
@@ -68,10 +102,6 @@ prometheus.relabel "node" {
 }
 
 prometheus.remote_write "default" {
-  endpoint {
-    url = "{{ .Values.remoteWriteUrl }}"
-  }
-
   // No X-Scope-OrgID header set here on purpose - Traefik derives the
   // tenant from whichever basicAuth user authenticates and overwrites that
   // header itself, so a client can't just self-declare a tenant.

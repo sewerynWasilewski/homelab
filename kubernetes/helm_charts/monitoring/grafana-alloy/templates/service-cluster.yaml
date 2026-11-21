@@ -1,0 +1,19 @@
+# Headless Service the Alloy pods use to find each other for clustering
+# (--cluster.join-addresses). Clustered scrape components (cluster-wide
+# targets like kube-state-metrics) are then spread across the peers, so
+# each target is scraped by exactly one pod instead of by every node.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-alloy.fullname" . }}-cluster
+  labels:
+    {{- include "grafana-alloy.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "grafana-alloy.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 12345
+      targetPort: http

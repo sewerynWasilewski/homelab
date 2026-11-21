@@ -9,11 +9,7 @@ uiService:
   port: 12345
   nodePort: 30345
 
-remoteWriteUrl: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
-
-# Dual-write (POC, deliberate): Prometheus keeps evaluating alert rules
-# independently so alerting survives a Mimir outage; Mimir is the long-term
-# store Grafana actually queries from. See docs/mimir.md.
+# Mimir is the only metrics store (Prometheus was removed from the cluster).
 # Goes through the public domain (not the in-cluster Service) even for this
 # in-cluster writer, on purpose - every writer authenticates the same way,
 # per-tenant, so a compromised/retired one can be revoked without touching
@@ -22,6 +18,9 @@ mimirRemoteWriteUrl: https://mimir.swasilewski.pl/api/v1/push
 mimirTenant: homelab
 
 clusterLabel: homelab
+
+# Cluster-wide target, scraped by exactly one Alloy pod thanks to clustering.
+kubeStateMetricsAddress: kube-state-metrics-kube-state-metrics.monitoring.svc.cluster.local:8080
 
 resources:
   requests:

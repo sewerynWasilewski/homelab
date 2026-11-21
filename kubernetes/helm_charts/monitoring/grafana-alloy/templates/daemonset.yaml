@@ -28,7 +28,14 @@ spec:
             - "/etc/alloy/config.alloy"
             - "--server.http.listen-addr=0.0.0.0:12345"
             - "--storage.path=/var/lib/alloy/data"
+            - "--cluster.enabled=true"
+            - "--cluster.join-addresses={{ include "grafana-alloy.fullname" . }}-cluster.{{ .Release.Namespace }}.svc.cluster.local:12345"
+            - "--cluster.advertise-address=$(POD_IP):12345"
           env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             # This node's IP, for scraping its own kubelet directly.
             - name: NODE_IP
               valueFrom:
