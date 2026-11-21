@@ -24,7 +24,7 @@ cert-manager:
   enabled: false
 
 # --- Database: external Postgres (already running on the services VM,
-# holds Terraform state too - see docker/services/postgresql/) ---
+# holds Terraform state too - see hosts/services/postgresql/) ---
 database:
   type: postgresql
 mariadb:
@@ -40,7 +40,7 @@ externalPostgresql:
   passwordKey: "password"
 
 # --- Broker: external RabbitMQ (new container on the services VM,
-# see docker/services/rabbitmq/) ---
+# see hosts/services/rabbitmq/) ---
 rabbitmq:
   enabled: false
 broker:

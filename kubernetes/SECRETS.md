@@ -71,7 +71,7 @@ kubectl -n website create secret docker-registry registry-credentials \
 
 Alertmanager UI and the Mimir endpoint are protected
 by Traefik basicAuth. The users files exist **only on the proxy VM** in
-`/root/traefik/auth/` (mounted as `/auth`, gitignored as `docker/lb/auth/`);
+`/root/traefik/auth/` (mounted as `/auth`, gitignored as `hosts/proxy/traefik/auth/`);
 the dynamic configs reference them via `usersFile`.
 
 | File | User | `.env` variable | Used by |
@@ -95,7 +95,7 @@ alloy DaemonSet).
 - `.env` (root): also Proxmox API token (`PM_API_TOKEN_*`), Cloudflare
   (`CLOUDFLARE_*`), Terraform state backend (`PG_CONN_STR`).
 - `terraform/live/**/terraform.tfvars`: gitignored, `.tmpl` sibling is committed.
-- `docker/**/.env`: per compose stack, gitignored, `.env.example` is committed.
+- `hosts/**/.env`: per compose stack, gitignored, `.env.example` is committed.
 - `keys/`: SSH keys, gitignored.
 
 ## If something leaks

@@ -19,7 +19,7 @@ storage:
 # services VM's disk (already hit that once today, on a different VM).
 blocksRetentionPeriod: 720h # 30d
 
-# MinIO already runs on the services VM (docker/services/minio-server) -
+# MinIO already runs on the services VM (hosts/services/minio-server) -
 # reused here as Mimir's object storage rather than standing up a second one.
 minio:
   endpoint: 10.10.10.10:9000

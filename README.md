@@ -1,11 +1,11 @@
 # Homelab
 
 Infrastructure-as-code for my homelab: Proxmox VMs, a kubeadm k8s cluster,
-Docker services, and a Prometheus/Mimir/Grafana monitoring stack.
+Docker services, and a Mimir/Grafana monitoring stack, deployed by Argo CD.
 
 - `ansible/` — VM provisioning and k8s bootstrap
-- `docker/` — Traefik, Postgres, MinIO, and other VM-hosted services
-- `kubernetes/` — Helm charts (monitoring stack, website)
+- `hosts/` — everything outside k8s, per machine (Traefik, Postgres, MinIO, Alloy, ...); see `hosts/README.md`
+- `kubernetes/` — Helm charts (monitoring stack, website) + Argo CD apps
 - `terraform/` — Proxmox VMs and Cloudflare DNS
 
 ## Keys & secrets

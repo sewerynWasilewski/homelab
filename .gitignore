@@ -22,12 +22,13 @@ archive/
 
 # docker-compose runtime data and credential files - never commit these,
 # only the docker-compose.yml/config that describes them
-docker/services/*/data/
-docker/services/*/auth/
+hosts/*/*/data/
+hosts/*/*/auth/
+hosts/*/data/
 
 # Safety net: real credentials live only in the root .env (see
 # kubernetes/SECRETS.md). Never commit ad-hoc secret manifests/values.
 secret-*.yaml
 values.secrets.yaml
 # Traefik basicAuth users files (generated from .env, live only on proxy VM)
-docker/lb/auth/
+hosts/proxy/traefik/auth/

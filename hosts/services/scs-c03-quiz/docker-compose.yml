@@ -1,0 +1,11 @@
+# AWS SCS-C03 exam quiz - a single static index.html served by nginx.
+# Image is built from ~/dev/private/scs-co3 (Dockerfile: nginx:1.30.7-alpine +
+# index.html) and pushed to the private registry. Routed by Traefik as
+# scs-c03.swasilewski.pl -> 10.10.10.10:8082 (hosts/proxy/traefik/dynamic/scs-c03.yml).
+services:
+  scs-c03-quiz:
+    image: registry.swasilewski.pl/scs-c03-quiz:v4
+    container_name: scs-c03-quiz
+    restart: unless-stopped
+    ports:
+      - "8082:80"
