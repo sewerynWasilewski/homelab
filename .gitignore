@@ -29,3 +29,5 @@ docker/services/*/auth/
 # kubernetes/SECRETS.md). Never commit ad-hoc secret manifests/values.
 secret-*.yaml
 values.secrets.yaml
+# Traefik basicAuth users files (generated from .env, live only on proxy VM)
+docker/lb/auth/

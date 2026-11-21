@@ -27,11 +27,11 @@ http:
     # per tenant (username = tenant ID), and headerField makes Traefik
     # overwrite X-Scope-OrgID with whichever username actually authenticated
     # - the client can't just declare a tenant, only prove it via password.
-    # Revoking a tenant is just deleting their line here and reloading.
+    # Revoking a tenant is just deleting their line in /auth/mimir.htpasswd
+    # (on the proxy VM) and reloading.
     mimir-auth:
       basicAuth:
-        users:
-          - "homelab:$2y$05$GJ6AsfwHd4NJcByFVtp0EuXbXxyxwcP1xnv26hRQmuumLBeOtilLe"
+        usersFile: /auth/mimir.htpasswd
         headerField: "X-Scope-OrgID"
         removeHeader: true
 

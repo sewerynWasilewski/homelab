@@ -23,12 +23,11 @@ http:
       redirectScheme:
         scheme: https
     # Alertmanager has no built-in login of its own - gate it with basic
-    # auth. This is a bcrypt hash, not reversible; the plaintext password
-    # was given to you separately when this was generated.
+    # auth. Users file lives only on the proxy VM (not in git), see
+    # kubernetes/SECRETS.md.
     alertmanager-auth:
       basicAuth:
-        users:
-          - "admin:$2y$05$9ZK.RAzpHjv8kvx0AUFHoOzbhKCmjjx74k3e25s.ShxmjSCe9rk52"
+        usersFile: /auth/alertmanager.htpasswd
 
   services:
     alertmanager:

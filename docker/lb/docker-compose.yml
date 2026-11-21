@@ -28,3 +28,5 @@ services:
     volumes:
       - ./dynamic:/dynamic:ro
       - ./acme.json:/etc/traefik/acme.json
+      # basicAuth users files (*.htpasswd) - NOT in git, see kubernetes/SECRETS.md
+      - ./auth:/auth:ro

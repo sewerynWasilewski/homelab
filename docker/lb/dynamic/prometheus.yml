@@ -27,8 +27,7 @@ http:
     # so there's no per-tenant revocation to preserve).
     prometheus-auth:
       basicAuth:
-        users:
-          - "homelab:$2y$05$YF2MiBJjfvVeFhStS1xus.NkX/Cf1GkVIIcCVM37dRSWcM7v4KdvC"
+        usersFile: /auth/prometheus.htpasswd
 
   services:
     prometheus:

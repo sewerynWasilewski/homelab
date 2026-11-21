@@ -1,7 +1,7 @@
 # Secrets
 
-This repo is **public**. No credential is ever committed — not in values files
-or manifests.
+This repo is **public**. No credential is ever committed — not in values files,
+not in manifests, not as a hash.
 
 ## How it works
 
@@ -66,6 +66,30 @@ kubectl -n website create secret docker-registry registry-credentials \
   --docker-password="$K8S_REGISTRY_PASSWORD" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
+
+## Traefik basicAuth (proxy VM)
+
+Alertmanager UI and the Prometheus/Mimir remote-write endpoints are protected
+by Traefik basicAuth. The users files exist **only on the proxy VM** in
+`/root/traefik/auth/` (mounted as `/auth`, gitignored as `docker/lb/auth/`);
+the dynamic configs reference them via `usersFile`.
+
+| File | User | `.env` variable | Used by |
+|---|---|---|---|
+| `alertmanager.htpasswd` | `admin` | `TRAEFIK_ALERTMANAGER_ADMIN_PASSWORD` | you, in the browser |
+| `prometheus.htpasswd` | `homelab` | `TRAEFIK_PROMETHEUS_HOMELAB_PASSWORD` | Alloy on proxy / services / proxmox (`PROMETHEUS_PASSWORD` in `/etc/default/alloy`) |
+| `mimir.htpasswd` | `homelab` (= tenant) | `TRAEFIK_MIMIR_HOMELAB_PASSWORD` | Alloy on the hosts (`MIMIR_PASSWORD` in `/etc/default/alloy`) and in-cluster (`alloy-mimir-credentials`, same value) |
+
+Rotate a password: put the new value in `.env`, then
+
+```bash
+docker run --rm httpd:2.4-alpine htpasswd -nbB -C 12 homelab "$TRAEFIK_MIMIR_HOMELAB_PASSWORD" \
+  | ssh -J root@46.62.184.91 root@10.10.10.2 'cat > /root/traefik/auth/mimir.htpasswd'
+```
+
+Traefik picks it up without a restart. Then update every client listed above
+(`/etc/default/alloy` + `systemctl restart alloy`, the k8s Secret + restart the
+alloy DaemonSet).
 
 ## Other secrets in the repo (not Kubernetes)
 
