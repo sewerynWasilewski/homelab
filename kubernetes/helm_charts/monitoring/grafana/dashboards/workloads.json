@@ -17,7 +17,7 @@
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "mimir"
         },
         "query": "label_values(kube_service_info, namespace)",
         "refresh": 2,
@@ -55,7 +55,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -179,7 +179,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -222,7 +222,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -358,7 +358,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -532,7 +532,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -594,7 +594,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -683,7 +683,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -726,7 +726,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -850,7 +850,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -876,7 +876,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -904,7 +904,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -973,7 +973,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {

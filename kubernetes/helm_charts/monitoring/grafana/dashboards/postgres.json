@@ -17,7 +17,7 @@
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "mimir"
         },
         "query": "label_values(pg_database_size_bytes, datname)",
         "refresh": 2,
@@ -36,7 +36,7 @@
       "type": "stat",
       "title": "PostgreSQL Up",
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_up", "refId": "A" }
       ],
@@ -57,7 +57,7 @@
       "type": "stat",
       "title": "Active Connections",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum(pg_stat_activity_count{state=\"active\", datname=~\"$datname\"})", "refId": "A" }
       ],
@@ -69,7 +69,7 @@
       "type": "stat",
       "title": "Total Connections",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum(pg_stat_database_numbackends{datname=~\"$datname\"})", "refId": "A" }
       ],
@@ -81,7 +81,7 @@
       "type": "stat",
       "title": "Deadlocks (5m rate)",
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum(rate(pg_stat_database_deadlocks{datname=~\"$datname\"}[5m]))", "refId": "A" }
       ],
@@ -99,7 +99,7 @@
       "type": "table",
       "title": "Database Sizes",
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 4 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_database_size_bytes{datname=~\"$datname\"}", "format": "table", "instant": true, "refId": "A" }
       ],
@@ -131,7 +131,7 @@
       "type": "timeseries",
       "title": "Connections by Database",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_stat_database_numbackends{datname=~\"$datname\"}", "legendFormat": "{{datname}}", "refId": "A" }
       ],
@@ -142,7 +142,7 @@
       "type": "timeseries",
       "title": "Connections by State",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum by (state) (pg_stat_activity_count{datname=~\"$datname\"})", "legendFormat": "{{state}}", "refId": "A" }
       ],
@@ -160,7 +160,7 @@
       "type": "timeseries",
       "title": "Commits vs Rollbacks (rate)",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum by (datname) (rate(pg_stat_database_xact_commit{datname=~\"$datname\"}[5m]))", "legendFormat": "{{datname}} commits", "refId": "A" },
         { "expr": "-(sum by (datname) (rate(pg_stat_database_xact_rollback{datname=~\"$datname\"}[5m])))", "legendFormat": "{{datname}} rollbacks", "refId": "B" }
@@ -189,7 +189,7 @@
       "title": "Buffer Cache Hit Ratio",
       "description": "Share of reads served from PostgreSQL's own shared buffer cache rather than disk. Healthy is close to 100% - a sustained drop means the working set no longer fits in shared_buffers.",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "sum(rate(pg_stat_database_blks_hit{datname=~\"$datname\"}[5m])) / (sum(rate(pg_stat_database_blks_hit{datname=~\"$datname\"}[5m])) + sum(rate(pg_stat_database_blks_read{datname=~\"$datname\"}[5m]))) * 100",
@@ -213,7 +213,7 @@
       "type": "timeseries",
       "title": "Disk Blocks Read (rate)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum by (datname) (rate(pg_stat_database_blks_read{datname=~\"$datname\"}[5m]))", "legendFormat": "{{datname}}", "refId": "A" }
       ],
@@ -231,7 +231,7 @@
       "type": "timeseries",
       "title": "Locks by Mode",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum by (mode) (pg_locks_count{datname=~\"$datname\"})", "legendFormat": "{{mode}}", "refId": "A" }
       ],
@@ -243,7 +243,7 @@
       "title": "Temp Files Written",
       "description": "Queries spilling sort/hash work to disk instead of doing it in memory - frequent spikes suggest work_mem is too small for the workload.",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum by (datname) (rate(pg_stat_database_temp_bytes{datname=~\"$datname\"}[5m]))", "legendFormat": "{{datname}}", "refId": "A" }
       ],
@@ -262,7 +262,7 @@
       "title": "Is Replica",
       "description": "Always 'No' on this deployment today - single standalone instance, no replicas configured.",
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 48 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_replication_is_replica", "refId": "A" }
       ],
@@ -283,7 +283,7 @@
       "title": "Replication Lag",
       "description": "No data on this deployment today - there are no replicas to lag behind.",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 48 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_replication_lag_seconds", "legendFormat": "lag", "refId": "A" }
       ],
@@ -294,7 +294,7 @@
       "type": "timeseries",
       "title": "WAL Size",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pg_wal_size_bytes", "legendFormat": "WAL size", "refId": "A" }
       ],

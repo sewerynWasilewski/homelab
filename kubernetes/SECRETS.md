@@ -69,7 +69,7 @@ kubectl -n website create secret docker-registry registry-credentials \
 
 ## Traefik basicAuth (proxy VM)
 
-Alertmanager UI and the Prometheus/Mimir remote-write endpoints are protected
+Alertmanager UI and the Mimir endpoint are protected
 by Traefik basicAuth. The users files exist **only on the proxy VM** in
 `/root/traefik/auth/` (mounted as `/auth`, gitignored as `docker/lb/auth/`);
 the dynamic configs reference them via `usersFile`.
@@ -77,7 +77,6 @@ the dynamic configs reference them via `usersFile`.
 | File | User | `.env` variable | Used by |
 |---|---|---|---|
 | `alertmanager.htpasswd` | `admin` | `TRAEFIK_ALERTMANAGER_ADMIN_PASSWORD` | you, in the browser |
-| `prometheus.htpasswd` | `homelab` | `TRAEFIK_PROMETHEUS_HOMELAB_PASSWORD` | Alloy on proxy / services / proxmox (`PROMETHEUS_PASSWORD` in `/etc/default/alloy`) |
 | `mimir.htpasswd` | `homelab` (= tenant) | `TRAEFIK_MIMIR_HOMELAB_PASSWORD` | Alloy on the hosts (`MIMIR_PASSWORD` in `/etc/default/alloy`) and in-cluster (`alloy-mimir-credentials`, same value) |
 
 Rotate a password: put the new value in `.env`, then

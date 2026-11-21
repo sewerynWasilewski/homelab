@@ -15,7 +15,7 @@
       {
         "name": "proxmox_cluster",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "mimir" },
         "query": "label_values(pve_up, proxmox_cluster)",
         "refresh": 2,
         "includeAll": true,
@@ -25,7 +25,7 @@
       {
         "name": "instance",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "mimir" },
         "query": "label_values(pve_up{proxmox_cluster=~\"$proxmox_cluster\"}, instance)",
         "refresh": 2,
         "includeAll": true,
@@ -35,7 +35,7 @@
       {
         "name": "guest",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "mimir" },
         "query": "label_values(pve_guest_info, name)",
         "refresh": 2,
         "includeAll": true,
@@ -50,7 +50,7 @@
       "type": "stat",
       "title": "Node Up",
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"node/.+\"}", "refId": "A" }
       ],
@@ -70,7 +70,7 @@
       "type": "stat",
       "title": "VMs Running",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "count(pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} == 1) OR on() vector(0)", "refId": "A" }
       ],
@@ -82,7 +82,7 @@
       "type": "stat",
       "title": "VMs Stopped",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "count(pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} == 0) OR on() vector(0)", "refId": "A" }
       ],
@@ -101,7 +101,7 @@
       "title": "Guests Not Backed Up",
       "description": "Guests with no backup job covering them at all - not \"backup overdue\", genuinely unprotected.",
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "sum(pve_not_backed_up_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"}) OR on() vector(0)", "refId": "A" }
       ],
@@ -126,7 +126,7 @@
       "type": "table",
       "title": "Guest Status",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "pve_up{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name, type) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}",
@@ -167,7 +167,7 @@
       "type": "timeseries",
       "title": "Guest CPU Usage",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "pve_cpu_usage_ratio{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"} * 100",
@@ -182,7 +182,7 @@
       "type": "timeseries",
       "title": "Guest Memory Usage",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "pve_memory_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"} * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"}",
@@ -197,7 +197,7 @@
       "type": "timeseries",
       "title": "Guest Network I/O",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "sum by (name) (rate(pve_network_receive_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"})",
@@ -226,7 +226,7 @@
       "type": "timeseries",
       "title": "Guest Disk I/O",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "sum by (name) (rate(pve_disk_read_bytes_total{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"qemu/.+\"}[5m]) * on(id) group_left(name) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", name=~\"$guest\"})",
@@ -262,7 +262,7 @@
       "type": "timeseries",
       "title": "Storage Pool Usage %",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "(pve_disk_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"} / pve_disk_size_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"}) * 100",
@@ -277,7 +277,7 @@
       "type": "timeseries",
       "title": "Storage Pool Usage (GB)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "pve_disk_usage_bytes{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\", id=~\"storage/.+\"}",
@@ -299,7 +299,7 @@
       "type": "table",
       "title": "Guests Not Backed Up",
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 39 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         {
           "expr": "pve_not_backed_up_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"} * on(id) group_left(name, type) pve_guest_info{proxmox_cluster=~\"$proxmox_cluster\", instance=~\"$instance\"}",

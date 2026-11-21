@@ -7,10 +7,15 @@ metadata:
 data:
   datasources.yaml: |
     apiVersion: 1
+    # In-cluster Prometheus was removed - Mimir is the only metrics store.
+    # Provisioning doesn't drop removed datasources by itself.
+    deleteDatasources:
+      - name: Prometheus
+        orgId: 1
     datasources:
       # One Grafana Organization = one Mimir tenant. This org (id 1) is the
       # "homelab" tenant - its X-Scope-OrgID header here must match a real
-      # basicAuth user in docker/lb/dynamic/mimir.yml, or writes/reads for
+      # basicAuth user in mimir.htpasswd on the proxy VM, or writes/reads for
       # this tenant stop working. A second client gets its own Grafana Org,
       # its own copy of this datasource (different orgId + X-Scope-OrgID),
       # and its own Traefik credential - nothing else changes.
@@ -25,13 +30,6 @@ data:
           httpHeaderName1: "X-Scope-OrgID"
         secureJsonData:
           httpHeaderValue1: "homelab"
-      - name: Prometheus
-        type: prometheus
-        uid: prometheus
-        orgId: 1
-        url: {{ .Values.targets.prometheus }}
-        access: proxy
-        isDefault: false
       - name: Alertmanager
         type: alertmanager
         uid: alertmanager

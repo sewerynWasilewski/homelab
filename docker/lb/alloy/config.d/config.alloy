@@ -71,14 +71,6 @@ prometheus.relabel "probe_labels" {
 
 prometheus.remote_write "default" {
   endpoint {
-    url = "https://prometheus.swasilewski.pl/api/v1/write"
-    basic_auth {
-      username = "homelab"
-      password = sys.env("PROMETHEUS_PASSWORD")
-    }
-  }
-
-  endpoint {
     url = "https://mimir.swasilewski.pl/api/v1/push"
     basic_auth {
       username = "homelab"

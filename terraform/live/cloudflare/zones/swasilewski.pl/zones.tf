@@ -163,16 +163,6 @@ locals {
       settings = {}
       comment = "terraform managed - mimir remote_write/query endpoint (behind Traefik basicAuth)"
     },
-    "prometheus_a" = {
-      content  = "46.62.184.91"
-      name     = "prometheus"
-      proxied  = false
-      tags     = []
-      ttl      = 1
-      type     = "A"
-      settings = {}
-      comment = "terraform managed - prometheus remote_write endpoint only, behind Traefik basicAuth"
-    },
   }
 }
 

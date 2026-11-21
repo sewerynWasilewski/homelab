@@ -32,6 +32,19 @@ prometheus.scrape "postgres" {
   forward_to = [prometheus.relabel.labels.receiver]
 }
 
+// MinIO's own built-in metrics endpoint - no separate exporter needed.
+// Authenticated with a dedicated "monitoring" MinIO user restricted to
+// exactly the admin:Prometheus action (see mc admin policy on this host),
+// not the root account or the mimir-scoped bucket user.
+prometheus.scrape "minio" {
+  targets = [
+    {"__address__" = "localhost:9000"},
+  ]
+  metrics_path = "/minio/v2/metrics/cluster"
+  bearer_token = sys.env("MINIO_METRICS_TOKEN")
+  forward_to   = [prometheus.relabel.labels.receiver]
+}
+
 prometheus.relabel "labels" {
   forward_to = [prometheus.remote_write.default.receiver]
 
@@ -49,14 +62,6 @@ prometheus.relabel "labels" {
 }
 
 prometheus.remote_write "default" {
-  endpoint {
-    url = "https://prometheus.swasilewski.pl/api/v1/write"
-    basic_auth {
-      username = "homelab"
-      password = sys.env("PROMETHEUS_PASSWORD")
-    }
-  }
-
   endpoint {
     url = "https://mimir.swasilewski.pl/api/v1/push"
     basic_auth {

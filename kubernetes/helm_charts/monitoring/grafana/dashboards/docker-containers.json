@@ -17,7 +17,7 @@
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "mimir"
         },
         "query": "label_values(container_last_seen{k8s_cluster=\"\"}, host)",
         "refresh": 2,
@@ -43,7 +43,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -69,7 +69,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {
@@ -98,7 +98,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "mimir"
       },
       "targets": [
         {

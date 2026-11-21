@@ -24,7 +24,6 @@ persistence:
 
 targets:
   mimir: http://mimir-mimir.monitoring.svc.cluster.local:8080/prometheus
-  prometheus: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
   alertmanager: http://alertmanager-alertmanager.monitoring.svc.cluster.local:9093
 
 resources:

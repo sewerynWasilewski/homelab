@@ -12,7 +12,7 @@
       {
         "name": "location",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "mimir" },
         "query": "label_values(probe_success, location)",
         "refresh": 2,
         "includeAll": true,
@@ -37,7 +37,7 @@
       "repeatDirection": "h",
       "maxPerRow": 3,
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
       ],
@@ -71,7 +71,7 @@
       "repeatDirection": "h",
       "maxPerRow": 3,
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "probe_duration_seconds{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
       ],
@@ -104,7 +104,7 @@
       "type": "table",
       "title": "TLS Certificates",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
         { "expr": "probe_ssl_earliest_cert_expiry", "format": "table", "instant": true, "refId": "A" }
       ],
