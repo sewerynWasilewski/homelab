@@ -13,6 +13,14 @@ modules:
     http:
       preferred_ip_protocol: "ip4"
       valid_status_codes: [200, 403]
+  # Behind Traefik basicAuth (e.g. Alertmanager) - an unauthenticated 401
+  # still proves Traefik and the route are up.
+  http_basicauth:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: "ip4"
+      valid_status_codes: [200, 401]
   # Connectivity only - skips certificate trust verification. For targets
   # with a known/accepted TLS issue where you still want a real up/down
   # signal instead of every check failing on cert trust alone.

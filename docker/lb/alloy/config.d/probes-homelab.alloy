@@ -1,3 +1,11 @@
+// One file per client, same idea as tenesys/webmon-config's recipes.d/ -
+// each file owns its own blackbox exporter + scrape and just forwards into
+// the shared prometheus.relabel.probe_labels defined in 00-shared.alloy.
+// To onboard a new client: copy this file, rename both component labels
+// and the `client` value, done - 00-shared.alloy never needs to change.
+//
+// http_2xx also reports probe_ssl_earliest_cert_expiry for https:// targets.
+// tcp_connect avoids needing raw-socket privileges real ICMP ping would need.
 prometheus.exporter.blackbox "homelab" {
   config_file = "/etc/alloy/blackbox.yml"
 
@@ -49,8 +57,38 @@ prometheus.exporter.blackbox "homelab" {
     module  = "http_2xx"
     labels  = { client = "homelab", sla_tier = "standard" }
   }
+  target {
+    name    = "argocd.swasilewski.pl"
+    address = "https://argocd.swasilewski.pl/healthz"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "grafana.swasilewski.pl"
+    address = "https://grafana.swasilewski.pl/api/health"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "alerta.swasilewski.pl"
+    address = "https://alerta.swasilewski.pl"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "goalert.swasilewski.pl"
+    address = "https://goalert.swasilewski.pl/health"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
+    name    = "alertmanager.swasilewski.pl"
+    address = "https://alertmanager.swasilewski.pl"
+    module  = "http_basicauth"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
 
-  // Internal-only, not exposed via Traefik
+  // Internal-only, not exposed via Traefik - add more as needed.
   target {
     name    = "postgres"
     address = "10.10.10.10:5432"

@@ -96,7 +96,7 @@ locals {
     "argocd_a" = {
       content  = "46.62.184.91"
       name     = "argocd"
-      proxied  = false
+      proxied  = true
       tags     = []
       ttl      = 1
       type     = "A"
@@ -116,7 +116,7 @@ locals {
     "grafana_a" = {
       content  = "46.62.184.91"
       name     = "grafana"
-      proxied  = false
+      proxied  = true
       tags     = []
       ttl      = 1
       type     = "A"
@@ -126,7 +126,7 @@ locals {
     "alerta_a" = {
       content  = "46.62.184.91"
       name     = "alerta"
-      proxied  = false
+      proxied  = true
       tags     = []
       ttl      = 1
       type     = "A"
@@ -136,7 +136,7 @@ locals {
     "alertmanager_a" = {
       content  = "46.62.184.91"
       name     = "alertmanager"
-      proxied  = false
+      proxied  = true
       tags     = []
       ttl      = 1
       type     = "A"
@@ -146,7 +146,7 @@ locals {
     "goalert_a" = {
       content  = "46.62.184.91"
       name     = "goalert"
-      proxied  = false
+      proxied  = true
       tags     = []
       ttl      = 1
       type     = "A"
