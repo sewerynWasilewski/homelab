@@ -17,7 +17,7 @@ remoteWriteUrl: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/a
 # Goes through the public domain (not the in-cluster Service) even for this
 # in-cluster writer, on purpose - every writer authenticates the same way,
 # per-tenant, so a compromised/retired one can be revoked without touching
-# the others. Password comes from secret-mimir.yaml, not this file.
+# the others. Password comes from a Secret, see kubernetes/SECRETS.md.
 mimirRemoteWriteUrl: https://mimir.swasilewski.pl/api/v1/push
 mimirTenant: homelab
 

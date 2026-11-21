@@ -1,7 +1,7 @@
 # macOS
 .DS_Store
 
-# env
+# env (all credentials, see kubernetes/SECRETS.md); .env.example is committed
 .env
 
 # keys / credentials (store locally in keys/, never commit)
@@ -25,16 +25,7 @@ archive/
 docker/services/*/data/
 docker/services/*/auth/
 
-# Standalone Kubernetes Secret manifests (chart-root, not under templates/ -
-# applied once via `kubectl apply -f`, not part of `helm upgrade`) hold real
-# credentials directly. Keep the *.example sibling committed as the
-# fill-in-the-blanks reference; never commit the real file.
+# Safety net: real credentials live only in the root .env (see
+# kubernetes/SECRETS.md). Never commit ad-hoc secret manifests/values.
 secret-*.yaml
-!secret-*.yaml.example
-
-# A handful of charts' values.yaml hold one or two credential fields
-# directly (Grafana admin password, GoAlert webhook token). The checked-in
-# values.yaml keeps a placeholder; the real value goes here and must be
-# passed explicitly at deploy time: helm upgrade ... -f values.secrets.yaml
 values.secrets.yaml
-!values.secrets.yaml.example

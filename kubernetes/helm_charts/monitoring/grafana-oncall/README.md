@@ -18,12 +18,12 @@ OnCall isn't a single-container app like Prometheus/Alertmanager/Grafana/kube-st
 
 ## Before installing
 
-1. Fill in the real passwords in `secret-postgresql.yaml` and `secret-rabbitmq.yaml` (currently placeholders - **never commit real values**, same discipline as the rest of this repo's secret handling).
+1. Make sure `K8S_ONCALL_*` values are set in the root `.env` (see `kubernetes/SECRETS.md`).
 2. Confirm Postgres is actually reachable on `10.10.10.10:5432` from the cluster (port rebind + `pg_hba.conf` update applied and the container restarted) and RabbitMQ is running on `10.10.10.10:5672`.
 3. Apply the secrets, then install:
 
 ```bash
-kubectl apply -f secret-postgresql.yaml -f secret-rabbitmq.yaml
+# create oncall-postgresql and oncall-rabbitmq as described in kubernetes/SECRETS.md
 
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update

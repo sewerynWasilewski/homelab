@@ -1,0 +1,31 @@
+---
+# NGINX2Root mitigation: the root-escalation step uses an unpatched Linux SCTP
+# bug (no CVE / no kernel fix as of 2026-11-18). Nothing in the homelab uses
+# SCTP, so block the module from being loaded (incl. auto-load by an
+# unprivileged socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP) call).
+# Remove once a fixed kernel is installed everywhere.
+- name: Disable SCTP kernel module
+  hosts: all
+  become: true
+  tasks:
+    - name: Block sctp module loading
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/disable-sctp.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Managed by Ansible (security-disable-sctp.yml) - NGINX2Root kernel LPE mitigation
+          install sctp /bin/false
+          blacklist sctp
+
+    - name: Check whether sctp is currently loaded
+      ansible.builtin.command: lsmod
+      register: lsmod_out
+      changed_when: false
+
+    - name: Unload sctp if loaded
+      community.general.modprobe:
+        name: sctp
+        state: absent
+      when: lsmod_out.stdout_lines | select('match', '^sctp\\s') | list | length > 0

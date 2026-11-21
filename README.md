@@ -11,5 +11,5 @@ Docker services, and a Prometheus/Mimir/Grafana monitoring stack.
 ## Keys & secrets
 
 - `keys/` — SSH keys, gitignored (only `.gitkeep` is tracked)
-- `secret-*.yaml` and `values.secrets.yaml` — real credentials, gitignored;
-  each has a committed `.example` sibling showing what to fill in
+- `.env` — all real credentials (incl. Kubernetes secrets), gitignored;
+  `.env.example` lists the keys. See `kubernetes/SECRETS.md`

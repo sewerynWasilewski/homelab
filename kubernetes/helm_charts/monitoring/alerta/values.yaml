@@ -13,8 +13,7 @@ service:
   nodePort: 30097
 
 # Full postgres://user:password@host:port/dbname connection string, kept in a
-# Secret rather than here - see secret-database.yaml (placeholder, fill in
-# the real value locally, never commit it).
+# Secret created by hand from .env - see kubernetes/SECRETS.md.
 database:
   existingSecret: alerta-database
   secretKey: DATABASE_URL

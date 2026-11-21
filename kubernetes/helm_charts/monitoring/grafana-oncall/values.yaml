@@ -36,7 +36,7 @@ externalPostgresql:
   port: 5432
   db_name: "oncall"
   user: "oncall_user"
-  existingSecret: "oncall-postgresql" # see secret-postgresql.yaml
+  existingSecret: "oncall-postgresql" # see kubernetes/SECRETS.md
   passwordKey: "password"
 
 # --- Broker: external RabbitMQ (new container on the services VM,
@@ -50,7 +50,7 @@ externalRabbitmq:
   port: 5672
   protocol: "amqp"
   vhost: "/"
-  existingSecret: "oncall-rabbitmq" # see secret-rabbitmq.yaml
+  existingSecret: "oncall-rabbitmq" # see kubernetes/SECRETS.md
   usernameKey: "username"
   passwordKey: "password"
 

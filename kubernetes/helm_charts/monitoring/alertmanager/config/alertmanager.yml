@@ -18,7 +18,7 @@ receivers:
           authorization:
             type: Key
             credentials_file: /etc/alertmanager/secrets/alerta-api-key
-      {{- if ne .Values.goalert.webhookUrl "REPLACE_ME_GOALERT_INTEGRATION_URL" }}
-      - url: {{ .Values.goalert.webhookUrl }}
+      {{- if .Values.goalert.existingSecret }}
+      - url_file: /etc/alertmanager/goalert/url
         send_resolved: true
       {{- end }}

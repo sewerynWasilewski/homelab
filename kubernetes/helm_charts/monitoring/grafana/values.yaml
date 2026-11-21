@@ -11,11 +11,10 @@ service:
   nodePort: 30030
 
 admin:
-  user: admin
-  # Real value lives in values.secrets.yaml (gitignored, see the .example
-  # sibling) - deploy with: helm upgrade grafana ./grafana -n monitoring -f
-  # values.secrets.yaml
-  password: "REPLACE_ME_ADMIN_PASSWORD"
+  # Admin credentials come from a Secret applied separately (kept out of git
+  # so ArgoCD can sync this chart) - see kubernetes/SECRETS.md. Must hold
+  # GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
+  existingSecret: grafana-admin-credentials
 
 rootUrl: https://grafana.swasilewski.pl/
 

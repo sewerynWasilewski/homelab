@@ -33,7 +33,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:
-                name: {{ include "grafana.fullname" . }}-admin
+                name: {{ .Values.admin.existingSecret | default (printf "%s-admin" (include "grafana.fullname" .)) }}
           env:
             - name: GF_SERVER_ROOT_URL
               value: {{ .Values.rootUrl | quote }}

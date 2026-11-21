@@ -38,6 +38,11 @@ spec:
             - name: alerta-key
               mountPath: /etc/alertmanager/secrets
               readOnly: true
+            {{- if .Values.goalert.existingSecret }}
+            - name: goalert-webhook
+              mountPath: /etc/alertmanager/goalert
+              readOnly: true
+            {{- end }}
             - name: data
               mountPath: /alertmanager
           resources:
@@ -49,6 +54,11 @@ spec:
         - name: alerta-key
           secret:
             secretName: {{ .Values.alerta.existingSecret }}
+        {{- if .Values.goalert.existingSecret }}
+        - name: goalert-webhook
+          secret:
+            secretName: {{ .Values.goalert.existingSecret }}
+        {{- end }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "alertmanager.fullname" . }}-data
