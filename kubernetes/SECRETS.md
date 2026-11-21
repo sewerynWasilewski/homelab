@@ -93,7 +93,8 @@ alloy DaemonSet).
 ## Other secrets in the repo (not Kubernetes)
 
 - `.env` (root): also Proxmox API token (`PM_API_TOKEN_*`), Cloudflare
-  (`CLOUDFLARE_*`), Terraform state backend (`PG_CONN_STR`).
+  (`CLOUDFLARE_*`), Terraform state in MinIO (`TF_STATE_*`, used via AWS
+  profile `homelab-tfstate` - see `terraform/README.md`).
 - `terraform/live/**/terraform.tfvars`: gitignored, `.tmpl` sibling is committed.
 - `hosts/**/.env`: per compose stack, gitignored, `.env.example` is committed.
 - `keys/`: SSH keys, gitignored.

@@ -66,7 +66,7 @@ locals {
     "minio_s3_a" = { 
       content  = "46.62.184.91"
       name     = "s3"
-      proxied  = true
+      proxied  = false
       tags     = []
       ttl      = 1
       type     = "A"

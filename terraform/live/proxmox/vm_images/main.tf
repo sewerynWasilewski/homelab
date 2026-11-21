@@ -8,7 +8,22 @@ terraform {
     }
   }
 
-  backend "pg" { /*PG_CONN_STR*/ }
+  backend "s3" {
+    # State in MinIO on the services VM, see terraform/README.md.
+    bucket                      = "tfstate"
+    key                         = "proxmox/vm_images.tfstate"
+    region                      = "us-east-1"
+    profile                     = "homelab-tfstate"
+    endpoints                   = { s3 = "https://s3.swasilewski.pl" }
+    use_path_style              = true
+    use_lockfile                = true
+    workspace_key_prefix        = "workspaces"
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
 }
 
 provider "proxmox" {
