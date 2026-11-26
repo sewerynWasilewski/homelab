@@ -32,7 +32,7 @@ spec:
           nodePort: 30200
         extraEnvVars:
           - name: ENABLE_SIGNUP
-            value: "true"     # po założeniu konta admina zmień na "false" i wypchnij
+            value: "false"
   destination:
     server: https://kubernetes.default.svc
     namespace: ai
