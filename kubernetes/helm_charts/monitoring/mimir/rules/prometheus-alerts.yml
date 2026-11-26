@@ -1,0 +1,11 @@
+groups:
+  - name: prometheus
+    rules:
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Target {{ $labels.job }}/{{ $labels.instance }} is down"
+          description: "This target has been unreachable for more than 5 minutes."
