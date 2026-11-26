@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-webui
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://helm.openwebui.com/
+    chart: open-webui
+    targetRevision: 18.5.0
+    helm:
+      valuesObject:
+        ollama:
+          enabled: false
+        ollamaUrls:
+          - http://ollama.ai.svc.cluster.local:11434
+        pipelines:
+          enabled: false
+        websocket:
+          manager: ""
+          redis:
+            enabled: false
+        enableOpenaiApi: false
+        persistence:
+          enabled: true
+          size: 2Gi
+          storageClass: local-path
+        service:
+          type: NodePort
+          nodePort: 30200
+        extraEnvVars:
+          - name: ENABLE_SIGNUP
+            value: "true"     # po założeniu konta admina zmień na "false" i wypchnij
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions: [CreateNamespace=true]
