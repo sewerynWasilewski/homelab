@@ -9,6 +9,16 @@ variable "proxmox_node" {
   })
 }
 
+variable "started" {
+  type    = bool
+  default = false
+}
+
+variable "enabled_agent" {
+  type    = bool
+  default = false
+}
+
 variable "vm_spec" {
   type = object({
     name          = string

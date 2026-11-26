@@ -18,6 +18,8 @@ all:
               ansible_host: 10.10.10.10
             immich: 
               ansible_host: 10.10.10.11
+            wordpress:
+              ansible_host: 10.10.10.12
             k8s-cp-01:
               ansible_host: 10.10.10.81
               k8s_control_plane_bootstrap: true
@@ -28,7 +30,9 @@ all:
               ansible_host: 10.10.10.83 
             k8s-worker-03:
               ansible_host: 10.10.10.84
-        
+            k8s-worker-ai:
+              ansible_host: 10.10.10.85
+
     k8s:
       children:
         control_plane: 
@@ -43,3 +47,4 @@ all:
             k8s-worker-01:
             k8s-worker-02:
             k8s-worker-03:
+            k8s-worker-ai:

@@ -29,6 +29,9 @@ module "cloud_init" {
 
 module "vm" {
   source = "../proxmox_vm"
+
+  started       = var.started
+  enabled_agent = var.enabled_agent
   
   proxmox_node = { 
     name = var.proxmox_node.name

@@ -43,5 +43,18 @@ locals {
       description   = "Terraform worker 03"
       pve_node_name = "proxmox01"
     }
+
+    # Dedicated node for AI workloads (Ollama, CPU-only inference).
+    # Label + taint swasilewski.pl/nodepool=ai are set by hand with kubectl.
+    k8s-worker-ai = {
+      vm_id         = 805
+      cores         = 8
+      memory        = 12288
+      disk          = 80
+      ip            = "10.10.10.85/24"
+      gateway       = "10.10.10.1"
+      description   = "Terraform worker - AI (Ollama)"
+      pve_node_name = "proxmox01"
+    }
   }
 }
