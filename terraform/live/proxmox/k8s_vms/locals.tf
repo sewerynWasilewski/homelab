@@ -9,6 +9,7 @@ locals {
       gateway       = "10.10.10.1"
       description   = "Terraform control plane"
       pve_node_name = "proxmox01"
+      cpu_type      = "x86-64-v2-AES"
     }
 
     k8s-worker-01 = {
@@ -20,6 +21,7 @@ locals {
       gateway       = "10.10.10.1"
       description   = "Terraform worker 01"
       pve_node_name = "proxmox01"
+      cpu_type      = "x86-64-v2-AES"
     }
 
     k8s-worker-02 = {
@@ -31,6 +33,7 @@ locals {
       gateway       = "10.10.10.1"
       description   = "Terraform worker 02"
       pve_node_name = "proxmox01"
+      cpu_type      = "x86-64-v2-AES"
     }
 
     k8s-worker-03 = {
@@ -42,6 +45,7 @@ locals {
       gateway       = "10.10.10.1"
       description   = "Terraform worker 03"
       pve_node_name = "proxmox01"
+      cpu_type      = "x86-64-v2-AES"
     }
 
     # Dedicated node for AI workloads (Ollama, CPU-only inference).
@@ -55,6 +59,10 @@ locals {
       gateway       = "10.10.10.1"
       description   = "Terraform worker - AI (Ollama)"
       pve_node_name = "proxmox01"
+      # host = pass the real CPU through (AVX2, FMA, AVX-VNNI) - llama.cpp
+      # needs them, x86-64-v2-AES hides them and inference falls back to
+      # slow scalar/SSE code.
+      cpu_type = "host"
     }
   }
 }
