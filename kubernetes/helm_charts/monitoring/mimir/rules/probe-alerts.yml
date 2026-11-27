@@ -6,6 +6,11 @@ groups:
       # tenesys/kapacitor uses downstream of webmon: rolling avg_over_time
       # window + threshold together, rather than a raw "has it been down
       # for N seconds" check split across separate systems).
+      #
+      # The description ends with the reason of the LAST probe:
+      #   timeout      - probe ran for (almost) the shortest module timeout (5s)
+      #   HTTP <code>  - got an answer, but with a status the module rejects
+      #   no response  - connection failed fast (refused / reset / TLS / DNS)
       - alert: ProbeDownCritical
         expr: avg_over_time(probe_success{sla_tier="critical"}[1m]) < 0.5
         for: 0s
@@ -19,7 +24,12 @@ groups:
           exported_instance: "{{ $labels.target }}"
         annotations:
           summary: "{{ $labels.target }} is down"
-          description: "{{ $labels.target }} ({{ $labels.location }}) has been failing its reachability probe for the last minute."
+          description: >-
+            {{ $labels.target }} ({{ $labels.location }}) has been failing its
+            reachability probe for the last minute. Reason:
+            {{ with printf "probe_duration_seconds{target='%s'} >= 4.9" $labels.target | query }}timeout
+            {{- else }}{{ with printf "probe_http_status_code{target='%s'} > 0" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
+            {{- else }}no response{{ end }}{{ end }}
 
       - alert: ProbeDownStandard
         expr: avg_over_time(probe_success{sla_tier="standard"}[5m]) < 0.5
@@ -29,7 +39,12 @@ groups:
           exported_instance: "{{ $labels.target }}"
         annotations:
           summary: "{{ $labels.target }} is down"
-          description: "{{ $labels.target }} ({{ $labels.location }}) has been failing its reachability probe for the last 5 minutes."
+          description: >-
+            {{ $labels.target }} ({{ $labels.location }}) has been failing its
+            reachability probe for the last 5 minutes. Reason:
+            {{ with printf "probe_duration_seconds{target='%s'} >= 4.9" $labels.target | query }}timeout
+            {{- else }}{{ with printf "probe_http_status_code{target='%s'} > 0" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
+            {{- else }}no response{{ end }}{{ end }}
 
       - alert: TLSCertExpiringSoon
         expr: probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600

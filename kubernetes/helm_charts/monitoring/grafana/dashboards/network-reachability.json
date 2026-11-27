@@ -39,7 +39,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
       "datasource": { "type": "prometheus", "uid": "mimir" },
       "targets": [
-        { "expr": "probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
+        { "expr": "(probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"} > 0) or ((probe_duration_seconds{job=~\"integrations/blackbox/.+\", location=~\"$location\"} >= 4.9 and probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"} == 0) * 0 - 1) or probe_http_status_code{job=~\"integrations/blackbox/.+\", location=~\"$location\"}", "legendFormat": "{{target}}", "refId": "A" }
       ],
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
@@ -47,7 +47,7 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "No response" } } }
+            { "type": "value", "options": { "-1": { "text": "Timeout", "color": "dark-orange" }, "0": { "text": "No response", "color": "semi-dark-red" } } }
           ],
           "thresholds": {
             "mode": "absolute",

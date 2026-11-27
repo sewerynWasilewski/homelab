@@ -112,4 +112,9 @@ prometheus.exporter.blackbox "homelab" {
 prometheus.scrape "homelab_probes" {
   targets    = prometheus.exporter.blackbox.homelab.targets
   forward_to = [prometheus.relabel.probe_labels.receiver]
+
+  // The effective probe timeout is min(module timeout, scrape_timeout - 0.5s).
+  // Default scrape_timeout is 10s, which would cap http_2xx_slow (15s).
+  scrape_interval = "60s"
+  scrape_timeout  = "20s"
 }

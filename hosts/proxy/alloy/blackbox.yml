@@ -4,6 +4,14 @@ modules:
     timeout: 5s
     http:
       preferred_ip_protocol: "ip4"
+  # For endpoints known to be slow (e.g. heavy apps, long first byte). Use it
+  # as `module = "http_2xx_slow"` on a target. Needs scrape_timeout > 15s on
+  # the probe scrape (probes-homelab.alloy), otherwise the scrape caps it.
+  http_2xx_slow:
+    prober: http
+    timeout: 15s
+    http:
+      preferred_ip_protocol: "ip4"
   tcp_connect:
     prober: tcp
     timeout: 5s
