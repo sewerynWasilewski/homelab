@@ -103,6 +103,16 @@ locals {
       settings = {}
       comment = "terraform managed - argocd web panel"
     },
+    "ai_a" = {
+      content  = "46.62.184.91"
+      name     = "ai"
+      proxied  = true
+      tags     = []
+      ttl      = 1
+      type     = "A"
+      settings = {}
+      comment = "terraform managed - open webui (ollama)"
+    },
     "scs_c03_quiz_a" = {
       content  = "46.62.184.91"
       name     = "scs-c03"

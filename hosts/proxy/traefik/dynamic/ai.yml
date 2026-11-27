@@ -1,0 +1,31 @@
+http:
+  routers:
+    ai-http:
+      rule: "Host(`ai.swasilewski.pl`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: open-webui
+
+    ai-https:
+      rule: "Host(`ai.swasilewski.pl`)"
+      entryPoints:
+        - websecure
+      service: open-webui
+      tls:
+        certResolver: le
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    # Open WebUI (k8s namespace ai, NodePort 30200)
+    open-webui:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.82:30200"
+          - url: "http://10.10.10.83:30200"
+          - url: "http://10.10.10.84:30200"
