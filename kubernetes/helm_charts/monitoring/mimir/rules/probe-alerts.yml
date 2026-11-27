@@ -7,10 +7,10 @@ groups:
       # window + threshold together, rather than a raw "has it been down
       # for N seconds" check split across separate systems).
       #
-      # The description ends with the reason of the LAST probe:
-      #   timeout      - probe ran for (almost) the shortest module timeout (5s)
-      #   HTTP <code>  - got an answer, but with a status the module rejects
-      #   no response  - connection failed fast (refused / reset / TLS / DNS)
+      # The description ends with the failure reason seen in the alert window:
+      #   timeout      - some probe ran for (almost) the shortest module timeout (5s)
+      #   no response  - some probe failed fast (refused / reset / TLS / DNS)
+      #   HTTP <code>  - answered, but with a status the module rejects
       - alert: ProbeDownCritical
         expr: avg_over_time(probe_success{sla_tier="critical"}[1m]) < 0.5
         for: 0s
@@ -27,9 +27,10 @@ groups:
           description: >-
             {{ $labels.target }} ({{ $labels.location }}) has been failing its
             reachability probe for the last minute. Reason:
-            {{ with printf "probe_duration_seconds{target='%s'} >= 4.9" $labels.target | query }}timeout
-            {{- else }}{{ with printf "probe_http_status_code{target='%s'} > 0" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
-            {{- else }}no response{{ end }}{{ end }}
+            {{ with printf "max_over_time((probe_duration_seconds{target='%s'} >= 4.9)[1m:])" $labels.target | query }}timeout
+            {{- else }}{{ with printf "min_over_time(probe_http_status_code{target='%s'}[1m]) == 0" $labels.target | query }}no response
+            {{- else }}{{ with printf "max_over_time(probe_http_status_code{target='%s'}[1m])" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
+            {{- else }}unknown{{ end }}{{ end }}{{ end }}
 
       - alert: ProbeDownStandard
         expr: avg_over_time(probe_success{sla_tier="standard"}[5m]) < 0.5
@@ -42,9 +43,10 @@ groups:
           description: >-
             {{ $labels.target }} ({{ $labels.location }}) has been failing its
             reachability probe for the last 5 minutes. Reason:
-            {{ with printf "probe_duration_seconds{target='%s'} >= 4.9" $labels.target | query }}timeout
-            {{- else }}{{ with printf "probe_http_status_code{target='%s'} > 0" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
-            {{- else }}no response{{ end }}{{ end }}
+            {{ with printf "max_over_time((probe_duration_seconds{target='%s'} >= 4.9)[5m:])" $labels.target | query }}timeout
+            {{- else }}{{ with printf "min_over_time(probe_http_status_code{target='%s'}[5m]) == 0" $labels.target | query }}no response
+            {{- else }}{{ with printf "max_over_time(probe_http_status_code{target='%s'}[5m])" $labels.target | query }}HTTP {{ . | first | value | printf "%.0f" }}
+            {{- else }}unknown{{ end }}{{ end }}{{ end }}
 
       - alert: TLSCertExpiringSoon
         expr: probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600
