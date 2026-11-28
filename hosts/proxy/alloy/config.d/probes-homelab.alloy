@@ -82,6 +82,12 @@ prometheus.exporter.blackbox "homelab" {
     labels  = { client = "homelab", sla_tier = "standard" }
   }
   target {
+    name    = "ai.swasilewski.pl"
+    address = "https://ai.swasilewski.pl/health"
+    module  = "http_2xx"
+    labels  = { client = "homelab", sla_tier = "standard" }
+  }
+  target {
     name    = "alertmanager.swasilewski.pl"
     address = "https://alertmanager.swasilewski.pl"
     module  = "http_basicauth"
